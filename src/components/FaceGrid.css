@@ -1,12 +1,31 @@
 .face-grid {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  overflow-x: auto;
-  padding: 4px 2px 6px;
 }
 
+/* 13 tiles per row, shrinking to fit the screen. */
 .face-row {
+  --gap: 4px;
+  --cell: min(34px, (100cqi - 12 * var(--gap)) / 13);
+  display: grid;
+  grid-template-columns: repeat(13, var(--cell));
+  gap: var(--gap);
+}
+
+.face-row .tile {
+  --w: var(--cell);
+}
+
+.face-extra {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
+}
+
+@container (max-width: 420px) {
+  .face-row {
+    --gap: 2px;
+  }
 }

@@ -1,11 +1,13 @@
-import { useState, type ReactNode } from 'react'
-import { moveTile, RACK_COLS, type Rack as RackSlots } from '../engine/layout'
+import { useState, type CSSProperties, type ReactNode } from 'react'
+import { moveTile, type Rack as RackSlots } from '../engine/layout'
 import type { Face, HandTile } from '../engine/tiles'
 import { Tile } from './Tile'
 import './Rack.css'
 
 interface Props {
   rack: RackSlots
+  /** Slots per row: 15 (2 rows) or 10 (3 rows) on narrow screens. */
+  cols: number
   tiles: HandTile[]
   okey: Face | null
   onChange: (rack: RackSlots) => void
@@ -14,8 +16,8 @@ interface Props {
   actions?: ReactNode
 }
 
-/** Two-row rack. Tap a tile, then tap another slot to move it there (or swap). */
-export function Rack({ rack, tiles, okey, onChange, onRemove, actions }: Props) {
+/** The rack (ıstaka). Tap a tile, then tap another slot to move it there (or swap). */
+export function Rack({ rack, cols, tiles, okey, onChange, onRemove, actions }: Props) {
   const [selected, setSelected] = useState<number | null>(null)
   const byId = new Map(tiles.map((t) => [t.id, t]))
 
@@ -33,15 +35,17 @@ export function Rack({ rack, tiles, okey, onChange, onRemove, actions }: Props) 
   return (
     <section className="panel">
       <h2>Istaka</h2>
-      <div className="rack" style={{ gridTemplateColumns: `repeat(${RACK_COLS}, var(--slot))` }}>
-        {rack.map((id, i) => {
-          const tile = id !== null ? byId.get(id) : undefined
-          return (
-            <div key={i} className="slot" onClick={tile ? undefined : () => clickSlot(i)}>
-              {tile && <Tile tile={tile} okey={okey} selected={selected === i} onClick={() => clickSlot(i)} />}
-            </div>
-          )
-        })}
+      <div className="rack-wrap">
+        <div className="rack" style={{ '--cols': cols } as CSSProperties}>
+          {rack.map((id, i) => {
+            const tile = id !== null ? byId.get(id) : undefined
+            return (
+              <div key={i} className="slot" onClick={tile ? undefined : () => clickSlot(i)}>
+                {tile && <Tile tile={tile} okey={okey} selected={selected === i} onClick={() => clickSlot(i)} />}
+              </div>
+            )
+          })}
+        </div>
       </div>
       <div className="toolbar">
         {actions}

@@ -1,22 +1,35 @@
+.rack-wrap {
+  container-type: inline-size;
+}
+
+/* Slots shrink to fit the screen; --cols is set from the component (15 or 10). */
 .rack {
-  --slot: 44px;
+  --cols: 15;
+  --gap: 3px;
+  --pad: 10px;
+  --slot: min(46px, (100cqi - 2 * var(--pad) - (var(--cols) - 1) * var(--gap)) / var(--cols));
   display: grid;
-  gap: 4px 3px;
-  padding: 10px;
+  grid-template-columns: repeat(var(--cols), var(--slot));
+  gap: 4px var(--gap);
+  width: fit-content;
+  padding: var(--pad);
   border-radius: 8px;
   background: linear-gradient(#a9733f, #8a5a2e);
-  overflow-x: auto;
 }
 
 .slot {
   width: var(--slot);
-  height: calc(40px * 1.35 + 4px);
+  height: calc(var(--slot) * 1.35);
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.12);
   cursor: pointer;
+}
+
+.slot .tile {
+  --w: calc(var(--slot) - 2px);
 }
 
 .toolbar {
@@ -32,7 +45,10 @@
   border-radius: 6px;
   border: 1px solid var(--border);
   background: var(--panel);
+  color: var(--text);
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .toolbar button.primary {
@@ -44,4 +60,15 @@
 .toolbar button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .rack {
+    --pad: 6px;
+  }
+
+  .toolbar button {
+    flex: 1 1 40%;
+    min-height: 44px;
+  }
 }

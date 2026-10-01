@@ -28,3 +28,15 @@ h2 small {
   font-size: 14px;
 }
 
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 22px;
+    margin: 4px 0 10px;
+  }
+
+  .panel {
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+}

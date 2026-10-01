@@ -21,3 +21,9 @@ body {
   margin: 0 auto;
   padding: 16px;
 }
+
+@media (max-width: 600px) {
+  #root {
+    padding: 8px;
+  }
+}

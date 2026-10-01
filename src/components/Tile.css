@@ -10,6 +10,9 @@
   box-shadow: 0 2px 0 #c9bfa8;
   font: 700 calc(var(--w) * 0.5) / 1 system-ui, sans-serif;
   cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -37,7 +40,7 @@
 .black { color: #222; }
 
 .tile .tag {
-  font-size: 8px;
+  font-size: max(6px, calc(var(--w) * 0.2));
   letter-spacing: 0.5px;
 }
 

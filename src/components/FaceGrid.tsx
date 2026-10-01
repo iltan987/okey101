@@ -24,7 +24,6 @@ export function FaceGrid({ okey, onPick, isDisabled, isSelected, children }: Pro
             return (
               <Tile
                 key={n}
-                small
                 tile={{ id: '', kind: 'face', color, n }}
                 okey={okey}
                 disabled={isDisabled?.(face)}

@@ -17,7 +17,7 @@ export function TilePicker({ tiles, indicator, okey, onAdd }: Props) {
         Taş ekle <small>{tiles.length} / {MAX_HAND}</small>
       </h2>
       <FaceGrid okey={okey} onPick={onAdd} isDisabled={(f) => !canAddTile(tiles, indicator, f)}>
-        <div className="face-row">
+        <div className="face-extra">
           <Tile
             small
             tile={{ id: '', ...falseOkey }}
