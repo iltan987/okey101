@@ -10,7 +10,7 @@ type BruteTile = Face | 'joker'
  * Best gain of a single meld made from exactly these tiles, or null if they can't form one.
  * `jokerGain` is what a joker is worth given the face it stands in for.
  */
-function meldGain(tiles: BruteTile[], jokerGain: (n: number) => number): number | null {
+function meldGain(tiles: BruteTile[], jokerGain: (n: number) => number, wrapRuns = false): number | null {
   const real = tiles.filter((t): t is Face => t !== 'joker')
   const jokers = tiles.length - real.length
   if (real.length === 0 || tiles.length < 3) return null
@@ -22,17 +22,25 @@ function meldGain(tiles: BruteTile[], jokerGain: (n: number) => number): number 
     best = real.length * n + jokers * jokerGain(n)
   }
 
-  // Run: one color, distinct numbers; jokers fill gaps, extras extend the ends (no wrap).
+  // Run: one color, distinct numbers; jokers fill gaps, extras extend the ends.
+  // With wrapRuns a 1 may also sit at position 14 (after 13), worth 1 point.
   const color = real[0].color
-  const ns = real.map((f) => f.n).sort((a, b) => a - b)
-  if (real.every((f) => f.color === color) && new Set(ns).size === ns.length) {
+  if (real.every((f) => f.color === color)) {
+    const layouts = [real.map((f) => f.n)]
+    if (wrapRuns) layouts.push(real.map((f) => (f.n === 1 ? 14 : f.n)))
     const len = tiles.length
-    const lo = ns[0]
-    const hi = ns[ns.length - 1]
-    if (hi - lo + 1 <= len && len <= MAX_N) {
-      for (let start = Math.max(1, hi - len + 1); start <= lo && start + len - 1 <= MAX_N; start++) {
+    for (const ns of layouts) {
+      if (new Set(ns).size !== ns.length) continue
+      const lo = Math.min(...ns)
+      const hi = Math.max(...ns)
+      const top = wrapRuns && hi === 14 ? 14 : MAX_N
+      if (hi - lo + 1 > len || len > MAX_N) continue
+      for (let start = Math.max(top === 14 ? 2 : 1, hi - len + 1); start <= lo && start + len - 1 <= top; start++) {
         let gain = 0
-        for (let k = start; k < start + len; k++) gain += ns.includes(k) ? k : jokerGain(k)
+        for (let k = start; k < start + len; k++) {
+          const value = k === 14 ? 1 : k
+          gain += ns.includes(k) ? value : jokerGain(value)
+        }
         if (best === null || gain > best) best = gain
       }
     }
@@ -41,27 +49,33 @@ function meldGain(tiles: BruteTile[], jokerGain: (n: number) => number): number 
 }
 
 /** Exhaustive search: the first tile is either left over or melded with any subset of the rest. */
-function bruteBest(tiles: BruteTile[], jokerGain: (n: number) => number): number {
+function bruteBest(tiles: BruteTile[], jokerGain: (n: number) => number, wrapRuns = false): number {
   if (tiles.length === 0) return 0
   const [first, ...rest] = tiles
-  let best = bruteBest(rest, jokerGain)
+  let best = bruteBest(rest, jokerGain, wrapRuns)
   if (first === 'joker') return best // jokers are sorted last, so only jokers remain
   for (let mask = 1; mask < 1 << rest.length; mask++) {
     const chosen = [first, ...rest.filter((_, i) => mask & (1 << i))]
     if (chosen.length > MAX_N) continue
-    const gain = meldGain(chosen, jokerGain)
+    const gain = meldGain(chosen, jokerGain, wrapRuns)
     if (gain === null) continue
-    best = Math.max(best, gain + bruteBest(rest.filter((_, i) => !(mask & (1 << i))), jokerGain))
+    best = Math.max(best, gain + bruteBest(rest.filter((_, i) => !(mask & (1 << i))), jokerGain, wrapRuns))
   }
   return best
 }
 
-/** Random hand from a narrow pool (few colors, low numbers) so melds overlap and compete. */
-function randomPoolHand(rand: () => number, size: number): BruteTile[] {
+/**
+ * Random hand from a narrow pool (few colors, a short number range) so melds overlap and compete.
+ * `high` draws from the top of the range plus 1s, to exercise 12-13-1 runs.
+ */
+function randomPoolHand(rand: () => number, size: number, high = false): BruteTile[] {
   const colors: Color[] = COLORS.slice(0, 2 + Math.floor(rand() * 3))
-  const maxN = 4 + Math.floor(rand() * 4)
+  const span = 4 + Math.floor(rand() * 4)
+  const numbers = high
+    ? [1, ...Array.from({ length: span - 1 }, (_, i) => MAX_N - i)]
+    : Array.from({ length: span }, (_, i) => i + 1)
   const pool: BruteTile[] = []
-  for (const color of colors) for (let n = 1; n <= maxN; n++) pool.push({ color, n }, { color, n })
+  for (const color of colors) for (const n of numbers) pool.push({ color, n }, { color, n })
   pool.push('joker', 'joker')
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1))
@@ -99,6 +113,14 @@ describe('solve matches exhaustive search', () => {
         hand.reduce((s, t) => s + (t === 'joker' ? DEFAULT_RULES.jokerPenalty : t.n), 0)
       const expected = total - bruteBest(hand, () => DEFAULT_RULES.jokerPenalty)
       expect(solve(toSolverCounts(hand), { objective: 'penalty' }).penalty, JSON.stringify(hand)).toBe(expected)
+    }
+  })
+
+  it('finds the maximum meld points with 12-13-1 runs allowed', () => {
+    const wrapHands = Array.from({ length: 300 }, () => randomPoolHand(rand, 6 + Math.floor(rand() * 5), true))
+    for (const hand of wrapHands) {
+      const expected = bruteBest(hand, (n) => n, true)
+      expect(solve(toSolverCounts(hand), { wrapRuns: true }).points, JSON.stringify(hand)).toBe(expected)
     }
   })
 })

@@ -43,7 +43,7 @@ export function suggestDiscards(
     const counts = hand.counts.slice()
     counts[i]--
     const rest = { counts, jokers: hand.jokers }
-    const melds = solve(rest, { jokerPenalty: rules.jokerPenalty })
+    const melds = solve(rest, { jokerPenalty: rules.jokerPenalty, wrapRuns: rules.wrapRuns })
     const pairs = findPairs(rest, rules)
     options.push({
       face,

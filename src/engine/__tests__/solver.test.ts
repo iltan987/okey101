@@ -41,6 +41,32 @@ describe('solve', () => {
     expect(solveHand('R12 R13 R1').points).toBe(0)
   })
 
+  describe('with 12-13-1 runs allowed', () => {
+    const wrap = { wrapRuns: true }
+    it('accepts a 1 after 13', () => {
+      expect(labels(solveHand('R12 R13 R1', 'K13', wrap))).toEqual(['R12 R13 R1'])
+      expect(solveHand('R11 R12 R13 R1', 'K13', wrap).points).toBe(37)
+    })
+    it('still rejects 13-1-2', () => {
+      expect(solveHand('R13 R1 R2', 'K13', wrap).points).toBe(0)
+    })
+    it('lets an okey be the 1 after 13', () => {
+      // R12 R13 + okey: as R11 (11 points) beats as R1 (1 point) when maximizing points.
+      expect(solveHand('R12 R13 K1', 'K13', wrap).points).toBe(36)
+    })
+    it('never builds a 2-tile run with a wrapped okey', () => {
+      const s = solveHand('R13 K1', 'K13', wrap)
+      expect(s.melds).toHaveLength(0)
+    })
+    it('only produces valid melds on random hands', () => {
+      const rand = mulberry32(99)
+      for (let k = 0; k < 200; k++) {
+        const s = solve(toCounts(resolveHand(randomHand(rand, 22), { color: 'red', n: 1 + Math.floor(rand() * 13) })), wrap)
+        for (const m of s.melds) expect(isValidMeld(m, wrap)).toBe(true)
+      }
+    })
+  })
+
   it('picks the higher-scoring meld when tiles overlap', () => {
     // R7-R8-R9 = 24 vs. R9-Y9-B9 = 27
     expect(solveHand('R7 R8 R9 Y9 B9').points).toBe(27)

@@ -27,14 +27,14 @@ export interface Analysis {
 
 export function analyze({ tiles, indicator, rules: partialRules }: AnalyzeInput): Analysis {
   const rules = withDefaults(partialRules)
-  const { jokerPenalty } = rules
+  const { jokerPenalty, wrapRuns } = rules
   const counts = toCounts(resolveHand(tiles, indicator))
-  const melds = solve(counts, { jokerPenalty })
+  const melds = solve(counts, { jokerPenalty, wrapRuns })
   const pairs = findPairs(counts, rules)
   return {
     rules,
     melds,
-    lowestPenalty: solve(counts, { objective: 'penalty', jokerPenalty }),
+    lowestPenalty: solve(counts, { objective: 'penalty', jokerPenalty, wrapRuns }),
     pairs,
     canOpenMelds: melds.points >= rules.openPoints,
     discards:

@@ -9,6 +9,8 @@ export interface SolveOptions {
    */
   objective?: 'points' | 'penalty'
   jokerPenalty?: number
+  /** Allow a 1 after 13 to end a run (… 12-13-1). */
+  wrapRuns?: boolean
 }
 
 export interface Solution {
@@ -49,6 +51,7 @@ const EMPTY: State = { gain: 0, melds: 0, choice: null }
 export function solve(hand: Counts, opts: SolveOptions = {}): Solution {
   const objective = opts.objective ?? 'points'
   const jokerPenalty = opts.jokerPenalty ?? DEFAULT_RULES.jokerPenalty
+  const wrapRuns = opts.wrapRuns ?? DEFAULT_RULES.wrapRuns
   const counts = hand.counts.slice()
   const memo = new Map<string, State>()
 
@@ -98,14 +101,39 @@ export function solve(hand: Counts, opts: SolveOptions = {}): Solution {
       tiles.push({ face, joker: false })
       extend(tiles, [i], jokers - below)
     }
+    if (wrapRuns && face.n === 1) wrapDown([], [i], jokers)
     return out
+
+    /** Runs where this 1 comes after 13: (k … 13, 1), built downward from 13. */
+    function wrapDown(below: MeldTile[], real: number[], jokersLeft: number) {
+      const tiles = [...below, { face, joker: false }]
+      if (tiles.length >= 3) out.push({ meld: { kind: 'run', tiles }, real: real.slice(), jokers: jokers - jokersLeft })
+      const n = below.length ? below[0].face.n - 1 : MAX_N
+      if (n < 2) return // the 1 is already at the end
+      const prev = { color: face.color, n }
+      const idx = faceIndex(prev)
+      if (counts[idx] > 0) {
+        real.push(idx)
+        wrapDown([{ face: prev, joker: false }, ...below], real, jokersLeft)
+        real.pop()
+      }
+      if (jokersLeft > 0) wrapDown([{ face: prev, joker: true }, ...below], real, jokersLeft - 1)
+    }
 
     function extend(tiles: MeldTile[], real: number[], jokersLeft: number) {
       if (tiles.length >= 3) {
         out.push({ meld: { kind: 'run', tiles: tiles.slice() }, real: real.slice(), jokers: jokers - jokersLeft })
       }
-      const n = tiles[tiles.length - 1].face.n + 1
-      if (n > MAX_N) return
+      const last = tiles[tiles.length - 1].face.n
+      if (last === MAX_N) {
+        // With wrap, a joker can be the 1 after 13 (a real 1 sorts first, so it's already been placed).
+        if (wrapRuns && tiles[0].face.n !== 1 && jokersLeft > 0 && tiles.length >= 2) {
+          const one = { face: { color: face.color, n: 1 }, joker: true }
+          out.push({ meld: { kind: 'run', tiles: [...tiles, one] }, real: real.slice(), jokers: jokers - jokersLeft + 1 })
+        }
+        return
+      }
+      const n = last + 1
       const next = { color: face.color, n }
       const idx = faceIndex(next)
       if (counts[idx] > 0) {
