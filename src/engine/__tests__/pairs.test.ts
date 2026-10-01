@@ -25,6 +25,20 @@ describe('findPairs', () => {
     expect(r.leftover.map(faceLabel)).toEqual(['R2'])
   })
 
+  it('pairs two false okeys together', () => {
+    // Okey = K1, so both false okeys play as K1 and are identical tiles.
+    const r = pairsOf('F F R2 R2')
+    expect(r.pairs).toHaveLength(2)
+    expect(r.pairs.every(([a, b]) => !a.joker && !b.joker)).toBe(true)
+    expect(r.leftover).toHaveLength(0)
+  })
+
+  it('pairs a false okey with a real okey', () => {
+    const r = pairsOf('F K1')
+    expect(r.pairs).toHaveLength(1)
+    expect(r.leftoverJokers).toBe(0)
+  })
+
   it('pairs two jokers together when no singles are left', () => {
     const r = pairsOf('R3 R3 K1 K1')
     expect(r.pairs).toHaveLength(2)
