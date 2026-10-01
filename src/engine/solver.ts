@@ -24,7 +24,7 @@ export interface Solution {
   penalty: number
 }
 
-interface Candidate {
+export interface Candidate {
   meld: Meld
   /** Face indices of the real tiles used. */
   real: number[]
@@ -62,10 +62,62 @@ export function solve(hand: Counts, opts: SolveOptions = {}): Solution {
     for (const r of c.real) counts[r] += delta
   }
 
-  function candidates(i: number, jokers: number): Candidate[] {
-    const face = faceAt(i)
-    return [...setCandidates(i, face, jokers), ...runCandidates(i, face, jokers)]
+  /** Best gain from the current state; ties go to fewer (so longer) melds, which read better on the rack. */
+  function best(jokers: number): State {
+    const i = counts.findIndex((x) => x > 0)
+    if (i < 0) return EMPTY
+    const key = counts.join('') + jokers
+    const hit = memo.get(key)
+    if (hit) return hit
+
+    counts[i]--
+    let state: State = { ...best(jokers), choice: null }
+    counts[i]++
+
+    for (const c of meldCandidates(counts, i, jokers, wrapRuns)) {
+      take(c, -1)
+      const rest = best(jokers - c.jokers)
+      take(c, +1)
+      const gain = gainOf(c.meld) + rest.gain
+      const melds = rest.melds + 1
+      if (gain > state.gain || (gain === state.gain && melds < state.melds)) state = { gain, melds, choice: c }
+    }
+    memo.set(key, state)
+    return state
   }
+
+  best(hand.jokers)
+
+  // Walk the memoized choices to rebuild the solution.
+  const melds: Meld[] = []
+  const leftover: Face[] = []
+  let jokers = hand.jokers
+  for (;;) {
+    const i = counts.findIndex((x) => x > 0)
+    if (i < 0) break
+    const { choice } = memo.get(counts.join('') + jokers)!
+    if (choice) {
+      melds.push(choice.meld)
+      take(choice, -1)
+      jokers -= choice.jokers
+    } else {
+      leftover.push(faceAt(i))
+      counts[i]--
+    }
+  }
+
+  const points = melds.reduce((sum, m) => sum + meldPoints(m), 0)
+  const penalty = leftover.reduce((sum, f) => sum + f.n, 0) + jokers * jokerPenalty
+  return { melds, leftover, leftoverJokers: jokers, points, penalty }
+}
+
+/**
+ * Every set and run that contains tile `i` (as the run's lowest real tile, or as the 1 after
+ * 13 with wrapRuns), given the tiles still in `counts` and the jokers available.
+ */
+export function meldCandidates(counts: number[], i: number, jokers: number, wrapRuns: boolean): Candidate[] {
+  const face = faceAt(i)
+  return [...setCandidates(i, face, jokers), ...runCandidates(i, face, jokers)]
 
   function setCandidates(i: number, face: Face, jokers: number): Candidate[] {
     const out: Candidate[] = []
@@ -151,52 +203,4 @@ export function solve(hand: Counts, opts: SolveOptions = {}): Solution {
       }
     }
   }
-
-  /** Best gain from the current state; ties go to fewer (so longer) melds, which read better on the rack. */
-  function best(jokers: number): State {
-    const i = counts.findIndex((x) => x > 0)
-    if (i < 0) return EMPTY
-    const key = counts.join('') + jokers
-    const hit = memo.get(key)
-    if (hit) return hit
-
-    counts[i]--
-    let state: State = { ...best(jokers), choice: null }
-    counts[i]++
-
-    for (const c of candidates(i, jokers)) {
-      take(c, -1)
-      const rest = best(jokers - c.jokers)
-      take(c, +1)
-      const gain = gainOf(c.meld) + rest.gain
-      const melds = rest.melds + 1
-      if (gain > state.gain || (gain === state.gain && melds < state.melds)) state = { gain, melds, choice: c }
-    }
-    memo.set(key, state)
-    return state
-  }
-
-  best(hand.jokers)
-
-  // Walk the memoized choices to rebuild the solution.
-  const melds: Meld[] = []
-  const leftover: Face[] = []
-  let jokers = hand.jokers
-  for (;;) {
-    const i = counts.findIndex((x) => x > 0)
-    if (i < 0) break
-    const { choice } = memo.get(counts.join('') + jokers)!
-    if (choice) {
-      melds.push(choice.meld)
-      take(choice, -1)
-      jokers -= choice.jokers
-    } else {
-      leftover.push(faceAt(i))
-      counts[i]--
-    }
-  }
-
-  const points = melds.reduce((sum, m) => sum + meldPoints(m), 0)
-  const penalty = leftover.reduce((sum, f) => sum + f.n, 0) + jokers * jokerPenalty
-  return { melds, leftover, leftoverJokers: jokers, points, penalty }
 }
