@@ -55,3 +55,29 @@ span.tile {
 .tile.false-okey {
   color: #6a1b9a;
 }
+
+button.tile:not(:disabled):active {
+  transform: translateY(2px) scale(0.92);
+  box-shadow: 0 0 0 #c9bfa8;
+}
+
+.tile .badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: 700 11px/16px system-ui, sans-serif;
+  text-align: center;
+  animation: badge-pop 0.25s ease-out;
+}
+
+@keyframes badge-pop {
+  from {
+    transform: scale(1.8);
+  }
+}

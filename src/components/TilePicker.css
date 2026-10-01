@@ -1,0 +1,51 @@
+/* Stays in view while tapping tiles, so each add shows up without scrolling to the rack. */
+.picker-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  margin: -14px -14px 10px;
+  padding: 10px 14px 8px;
+  border-radius: 10px 10px 0 0;
+  background: var(--panel);
+}
+
+.picker-head h2 {
+  margin: 0;
+}
+
+.picker-head small.full {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.recent {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.recent .hint {
+  margin-right: 4px;
+}
+
+.recent .tile.small {
+  --w: 24px;
+}
+
+.recent-undo {
+  min-width: 34px;
+  min-height: 32px;
+  margin-left: 6px;
+  font: inherit;
+  font-size: 17px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+}

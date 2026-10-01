@@ -154,7 +154,13 @@ export default function App() {
       </h1>
       <RotateHint />
       <IndicatorPicker indicator={indicator} onChange={changeIndicator} />
-      <TilePicker tiles={tiles} indicator={indicator} okey={okey} onAdd={addTile} />
+      <TilePicker
+        tiles={tiles}
+        indicator={indicator}
+        okey={okey}
+        onAdd={addTile}
+        onRemoveLast={() => updateTiles(tiles.slice(0, -1))}
+      />
       <Rack
         rack={rack}
         tiles={tiles}
