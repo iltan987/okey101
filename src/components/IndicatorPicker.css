@@ -1,0 +1,55 @@
+.indicator-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.indicator-summary h2 {
+  margin: 0 4px 0 0;
+}
+
+.indicator-summary .arrow {
+  color: var(--muted);
+}
+
+.indicator-summary .okey-name {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.indicator-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.indicator-head h2 {
+  margin: 0;
+}
+
+.indicator-btn {
+  font: inherit;
+  font-size: 14px;
+  min-height: 36px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.indicator-summary .indicator-btn {
+  margin-left: auto;
+}
+
+/* The okey tile already says it; keep the summary on one line. */
+@media (max-width: 480px) {
+  .indicator-summary .okey-name {
+    display: none;
+  }
+}
