@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { IndicatorPicker } from './components/IndicatorPicker'
 import { Rack } from './components/Rack'
 import { ResultsPanel } from './components/ResultsPanel'
+import { RotateHint } from './components/RotateHint'
 import { TilePicker } from './components/TilePicker'
 import { layoutGroups, RACK_COLS, RACK_SLOTS, syncRack, type Rack as RackSlots } from './engine/layout'
 import type { MeldTile } from './engine/melds'
@@ -46,6 +47,7 @@ export default function App() {
   return (
     <>
       <h1>Okey 101 Yardımcısı</h1>
+      <RotateHint />
       <IndicatorPicker indicator={indicator} onChange={setIndicator} />
       <TilePicker tiles={tiles} indicator={indicator} okey={okey} onAdd={addTile} />
       <Rack
