@@ -11,12 +11,13 @@ interface Props {
   okey: Face
   pending: boolean
   onDiscard: (face: Face) => void
+  onPlay: () => void
 }
 
 const SIDE: Record<Layoff['side'], string> = { low: 'başına', high: 'sonuna', set: 'ekle' }
 
 /** After opening: the lay-off plan and what stays in hand. */
-export function OpenedResults({ analysis, opened, okey, pending, onDiscard }: Props) {
+export function OpenedResults({ analysis, opened, okey, pending, onDiscard, onPlay }: Props) {
   const { plan, discards } = opened
   const { rules } = analysis
   const pairsOpener = opened.with === 'pairs'
@@ -33,6 +34,14 @@ export function OpenedResults({ analysis, opened, okey, pending, onDiscard }: Pr
             ? 'Bu taşları oynayabilirsin:'
             : 'Şu an oynayabileceğin taş yok.'}
       </p>
+      {played > 0 && (
+        <div className="play-actions">
+          <button type="button" className="primary" disabled={pending} onClick={onPlay}>
+            Oynadım
+          </button>
+          <span className="hint">Taşları elinden çıkarır, masayı günceller.</span>
+        </div>
+      )}
       {!plan.canLayOff && <p className="hint">Açtığın el işleme yapılamaz (kural); sonraki elde işleyebilirsin.</p>}
       {pairsOpener && !rules.pairsOpenerCanMeld && <p className="hint">Çift açtığın için yeni per açamazsın; yalnızca işleyebilirsin.</p>}
 

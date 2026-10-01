@@ -139,3 +139,35 @@
   font-weight: 600;
   min-width: 110px;
 }
+
+.play-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.play-actions button {
+  min-height: 40px;
+  padding: 6px 14px;
+  font: inherit;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.play-actions button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.play-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

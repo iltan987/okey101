@@ -10,6 +10,7 @@ import { TilePicker } from './components/TilePicker'
 import type { OpenedState } from './engine/analyze'
 import { layoutGroups, RACK_SLOTS, syncRack, type Rack as RackSlots } from './engine/layout'
 import type { MeldTile } from './engine/melds'
+import { planTiles, removeFromHand, tableAfter } from './engine/play'
 import { withDefaults, type Rules } from './engine/rules'
 import type { TableMeld } from './engine/table'
 import { okeyFromIndicator, resolveHand, sameFace, type Face, type HandTile } from './engine/tiles'
@@ -86,6 +87,34 @@ export default function App() {
   const changeTable = (next: TableMeld[]) => {
     remember()
     setTable(next)
+  }
+
+  /** Plays tiles from the hand onto the table, as one undoable step. */
+  const play = (used: MeldTile[], jokersFromTable: number, nextTable: TableMeld[], nextOpened: OpenedState) => {
+    if (!indicator) return
+    const next = removeFromHand(tiles, indicator, used, jokersFromTable)
+    remember()
+    setTiles(next)
+    setRack(syncRack(rack, next.map((t) => t.id)))
+    setTable(nextTable)
+    setOpened(nextOpened)
+  }
+
+  const open = (by: 'melds' | 'pairs') => {
+    if (!result || pending) return
+    const opening = { with: by, thisTurn: true }
+    if (by === 'melds') {
+      const { melds } = result.melds
+      play(melds.flatMap((m) => m.tiles), 0, [...table, ...melds], opening)
+    } else {
+      play(result.pairs.pairs.flat(), 0, table, opening)
+    }
+  }
+
+  const playPlan = () => {
+    const plan = result?.opened?.plan
+    if (!plan || !opened || pending) return
+    play(planTiles(plan), plan.swaps.length, tableAfter(table, plan), opened)
   }
 
   useEffect(() => {
@@ -172,7 +201,14 @@ export default function App() {
         table={table}
         onTableChange={changeTable}
       />
-      <ResultsPanel analysis={result} okey={okey} pending={pending} onDiscard={discard} />
+      <ResultsPanel
+        analysis={result}
+        okey={okey}
+        pending={pending}
+        onDiscard={discard}
+        onOpen={open}
+        onPlay={playPlan}
+      />
       <RulesPanel rules={rules} onChange={setRules} />
     </>
   )

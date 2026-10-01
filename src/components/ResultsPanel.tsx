@@ -10,9 +10,13 @@ interface Props {
   pending: boolean
   /** Removes one copy of the face from the hand. */
   onDiscard: (face: Face) => void
+  /** Before opening: lay down the best opening (melds go to the table). */
+  onOpen: (by: 'melds' | 'pairs') => void
+  /** After opening: play the lay-off plan. */
+  onPlay: () => void
 }
 
-export function ResultsPanel({ analysis, okey, pending, onDiscard }: Props) {
+export function ResultsPanel({ analysis, okey, pending, onDiscard, onOpen, onPlay }: Props) {
   if (!okey) {
     return (
       <section className="panel results">
@@ -29,7 +33,16 @@ export function ResultsPanel({ analysis, okey, pending, onDiscard }: Props) {
   }
 
   if (analysis.opened) {
-    return <OpenedResults analysis={analysis} opened={analysis.opened} okey={okey} pending={pending} onDiscard={onDiscard} />
+    return (
+      <OpenedResults
+        analysis={analysis}
+        opened={analysis.opened}
+        okey={okey}
+        pending={pending}
+        onDiscard={onDiscard}
+        onPlay={onPlay}
+      />
+    )
   }
 
   const { melds, pairs, lowestPenalty, canOpenMelds, discards, rules } = analysis
@@ -43,6 +56,21 @@ export function ResultsPanel({ analysis, okey, pending, onDiscard }: Props) {
     <section className={`panel results${pending ? ' stale' : ''}`}>
       <h2>Sonuçlar</h2>
       <p className="recommendation">{recommendation}</p>
+      {(canOpenMelds || pairs.canOpen) && (
+        <div className="play-actions">
+          {canOpenMelds && (
+            <button type="button" className="primary" disabled={pending} onClick={() => onOpen('melds')}>
+              Perlerle aç
+            </button>
+          )}
+          {pairs.canOpen && (
+            <button type="button" className={canOpenMelds ? '' : 'primary'} disabled={pending} onClick={() => onOpen('pairs')}>
+              Çiftlerle aç
+            </button>
+          )}
+          <span className="hint">Taşları elinden çıkarır, perleri masaya koyar.</span>
+        </div>
+      )}
 
       <div className="stats">
         <Stat label="Per puanı" value={`${melds.points} / ${rules.openPoints}`} ok={canOpenMelds} />
