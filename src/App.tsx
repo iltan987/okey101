@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { DiscardNotice } from './components/DiscardNotice'
 import { IndicatorPicker } from './components/IndicatorPicker'
 import { Rack } from './components/Rack'
 import { ResultsPanel } from './components/ResultsPanel'
@@ -65,6 +66,15 @@ export default function App() {
         okey={okey}
         onChange={setRack}
         onRemove={(id) => updateTiles(tiles.filter((t) => t.id !== id))}
+        notice={
+          <DiscardNotice
+            tileCount={tiles.length}
+            analysis={result}
+            okey={okey}
+            pending={pending}
+            onDiscard={discard}
+          />
+        }
         actions={
           <>
             <button

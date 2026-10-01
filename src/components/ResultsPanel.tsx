@@ -2,8 +2,8 @@ import { OPEN_POINTS, type Analysis } from '../engine/analyze'
 import type { DiscardOption } from '../engine/discard'
 import type { MeldTile } from '../engine/melds'
 import { PAIRS_TO_OPEN } from '../engine/pairs'
-import { sameFace, type Face, type HandTile } from '../engine/tiles'
-import { faceName } from './labels'
+import type { Face } from '../engine/tiles'
+import { faceName, tileFor } from './labels'
 import { Tile } from './Tile'
 import './ResultsPanel.css'
 
@@ -102,16 +102,6 @@ function Stat({ label, value, ok, note }: { label: string; value: string; ok?: b
       {note && <div className="stat-note">{note}</div>}
     </div>
   )
-}
-
-/**
- * The physical tile to draw for a played face: the real okey for a joker, and a false okey
- * for a non-joker with the okey's face (that face's real copies are all jokers).
- */
-function tileFor(face: Face, joker: boolean, okey: Face): HandTile {
-  if (joker) return { id: '', kind: 'face', ...okey }
-  if (sameFace(face, okey)) return { id: '', kind: 'false' }
-  return { id: '', kind: 'face', ...face }
 }
 
 function Group({ tiles, okey }: { tiles: MeldTile[]; okey: Face }) {

@@ -12,10 +12,12 @@ interface Props {
   onRemove: (id: string) => void
   /** Extra buttons in the toolbar (e.g. auto-sort). */
   actions?: ReactNode
+  /** Shown above the rack (e.g. the discard notice). */
+  notice?: ReactNode
 }
 
 /** Two-row rack (ıstaka). Tap a tile, then tap another slot to move it there (or swap). */
-export function Rack({ rack, tiles, okey, onChange, onRemove, actions }: Props) {
+export function Rack({ rack, tiles, okey, onChange, onRemove, actions, notice }: Props) {
   const [selected, setSelected] = useState<number | null>(null)
   const byId = new Map(tiles.map((t) => [t.id, t]))
 
@@ -33,6 +35,7 @@ export function Rack({ rack, tiles, okey, onChange, onRemove, actions }: Props) 
   return (
     <section className="panel">
       <h2>Istaka</h2>
+      {notice}
       <div className="rack-wrap">
         <div className="rack">
           {rack.map((id, i) => {
