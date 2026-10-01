@@ -43,7 +43,10 @@ export default function App() {
 
   return (
     <>
-      <h1>Okey 101 Yardımcısı</h1>
+      <h1 className="app-title">
+        <img src="/favicon.svg" alt="" width={40} height={40} />
+        Okey 101 Yardımcısı
+      </h1>
       <RotateHint />
       <IndicatorPicker indicator={indicator} onChange={setIndicator} />
       <TilePicker tiles={tiles} indicator={indicator} okey={okey} onAdd={addTile} />

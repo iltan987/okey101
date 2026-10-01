@@ -3,6 +3,12 @@ h1 {
   margin: 8px 0 16px;
 }
 
+.app-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 h2 {
   font-size: 17px;
   margin: 0 0 10px;
@@ -33,6 +39,11 @@ h2 small {
   h1 {
     font-size: 22px;
     margin: 4px 0 10px;
+  }
+
+  .app-title img {
+    width: 30px;
+    height: 30px;
   }
 
   .panel {
