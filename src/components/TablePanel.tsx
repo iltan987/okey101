@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import type { OpenedState } from '../engine/analyze'
 import type { Rules } from '../engine/rules'
-import { readTableMeld, type TableMeld } from '../engine/table'
-import { resolveHand, type Face, type HandTile } from '../engine/tiles'
+import { readTableMeld, runBetween, type TableMeld } from '../engine/table'
+import { resolveHand, sameFace, type Face, type HandTile } from '../engine/tiles'
 import { FaceGrid } from './FaceGrid'
 import { tileFor } from './labels'
 import { Tile } from './Tile'
@@ -34,6 +34,15 @@ export function TablePanel({ indicator, okey, rules, opened, onOpenedChange, tab
     setEntry(null)
   }
   const push = (t: HandTile) => entry && entry.length < 13 && setEntry([...entry, t])
+
+  // Shortcut: tap a run's two ends and add the tiles in between at once.
+  const span = entry?.length === 2 && okey ? spanOf(entry[0], entry[1], okey, rules) : null
+  const addSpan = () => {
+    if (!span || !indicator) return
+    const tiles = span.map((f): HandTile => (sameFace(f, okey!) ? { id: '', kind: 'false' } : { id: '', kind: 'face', ...f }))
+    const [run] = readTableMeld(resolveHand(tiles, indicator), rules).filter((m) => m.kind === 'run')
+    if (run) add(run)
+  }
 
   return (
     <section className="panel table-panel">
@@ -100,7 +109,10 @@ export function TablePanel({ indicator, okey, rules, opened, onOpenedChange, tab
         </div>
       ) : (
         <div className="meld-builder">
-          <p className="hint">Perin taşlarına masadaki sırayla (soldan sağa) dokun. Okey için okey taşına dokun.</p>
+          <p className="hint">
+            Perin taşlarına masadaki sırayla (soldan sağa) dokun. Okey için okey taşına dokun. Okeysiz bir seride
+            yalnızca iki uca dokunman yeter.
+          </p>
           <div className="builder-row">
             {entry.length === 0 ? (
               <span className="hint">—</span>
@@ -115,6 +127,11 @@ export function TablePanel({ indicator, okey, rules, opened, onOpenedChange, tab
             </div>
           </FaceGrid>
           <div className="table-actions">
+            {span && (
+              <button type="button" className="tp-btn primary" onClick={addSpan}>
+                Seri ekle: {span[0].n}–{span[span.length - 1].n}
+              </button>
+            )}
             {readings.map((m) => (
               <button key={m.kind} type="button" className="tp-btn primary" onClick={() => add(m)}>
                 {readings.length > 1 ? (m.kind === 'set' ? 'Per olarak ekle' : 'Seri olarak ekle') : 'Ekle'}
@@ -137,4 +154,11 @@ export function TablePanel({ indicator, okey, rules, opened, onOpenedChange, tab
       )}
     </section>
   )
+}
+
+/** The run between two tapped ends, if they're plain tiles (not okeys) that make one. */
+function spanOf(a: HandTile, b: HandTile, okey: Face, rules: Rules): Face[] | null {
+  if (a.kind !== 'face' || b.kind !== 'face') return null
+  if (sameFace(a, okey) || sameFace(b, okey)) return null
+  return runBetween(a, b, rules)
 }

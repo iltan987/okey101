@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { readTableMeld } from '../table'
+import { readTableMeld, runBetween } from '../table'
 import { faceLabel, parseFace, parseHand, resolveHand } from '../tiles'
 
 // Okey = K1, so "K1" is an okey.
@@ -36,5 +36,25 @@ describe('readTableMeld', () => {
     expect(read('R12 R13 R1')).toEqual([])
     expect(read('R12 R13 R1', { wrapRuns: true })).toEqual(['run: R12 R13 R1'])
     expect(read('R12 R13 K1', { wrapRuns: true })).toEqual(['run: R12 R13 *R1'])
+  })
+})
+
+describe('runBetween', () => {
+  const between = (a: string, b: string, opts = {}) => runBetween(parseFace(a), parseFace(b), opts)?.map(faceLabel) ?? null
+
+  it('fills in the tiles between two ends', () => {
+    expect(between('R5', 'R9')).toEqual(['R5', 'R6', 'R7', 'R8', 'R9'])
+    expect(between('B1', 'B3')).toEqual(['B1', 'B2', 'B3'])
+  })
+
+  it('needs one color and at least 3 tiles', () => {
+    expect(between('R5', 'Y9')).toBeNull()
+    expect(between('R5', 'R6')).toBeNull()
+    expect(between('R9', 'R5')).toBeNull()
+  })
+
+  it('ends with a 1 after 13 only when wrapping is allowed', () => {
+    expect(between('Y11', 'Y1', { wrapRuns: true })).toEqual(['Y11', 'Y12', 'Y13', 'Y1'])
+    expect(between('Y11', 'Y1')).toBeNull()
   })
 })

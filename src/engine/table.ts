@@ -1,5 +1,5 @@
 import { isValidMeld, type Meld, type MeldTile } from './melds'
-import { COLORS, MAX_N, type Color, type ResolvedTile } from './tiles'
+import { COLORS, MAX_N, type Color, type Face, type ResolvedTile } from './tiles'
 
 /** A meld on the table (any player's), tiles in table order. Jokers carry the face they stand for. */
 export type TableMeld = Meld
@@ -49,4 +49,17 @@ function readRun(entry: ResolvedTile[]): TableMeld | null {
     tiles.push({ face: { color, n }, joker: t.joker })
   }
   return { kind: 'run', tiles }
+}
+
+/**
+ * The run from one end to the other, both included (a 1 after 13 when `to` is 1 and wrapRuns).
+ * Null unless both are the same color and at least 3 tiles apart end to end.
+ */
+export function runBetween(from: Face, to: Face, { wrapRuns = false } = {}): Face[] | null {
+  if (from.color !== to.color) return null
+  const end = to.n === 1 && wrapRuns && from.n > 1 ? MAX_N + 1 : to.n
+  if (end - from.n < 2) return null
+  const faces: Face[] = []
+  for (let n = from.n; n <= end; n++) faces.push({ color: from.color, n: n === MAX_N + 1 ? 1 : n })
+  return faces
 }
