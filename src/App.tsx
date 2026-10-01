@@ -4,11 +4,10 @@ import { Rack } from './components/Rack'
 import { ResultsPanel } from './components/ResultsPanel'
 import { RotateHint } from './components/RotateHint'
 import { TilePicker } from './components/TilePicker'
-import { layoutGroups, RACK_COLS, RACK_SLOTS, syncRack, type Rack as RackSlots } from './engine/layout'
+import { layoutGroups, RACK_SLOTS, syncRack, type Rack as RackSlots } from './engine/layout'
 import type { MeldTile } from './engine/melds'
 import { okeyFromIndicator, resolveHand, type Face, type HandTile } from './engine/tiles'
 import { useAnalysis } from './hooks/useAnalysis'
-import { useMediaQuery } from './hooks/useMediaQuery'
 import { usePersistentState } from './hooks/usePersistentState'
 import './App.css'
 
@@ -19,8 +18,6 @@ export default function App() {
   const [tiles, setTiles] = usePersistentState<HandTile[]>('okey101.tiles', [])
   const [savedRack, setRack] = usePersistentState<RackSlots>('okey101.rack', EMPTY_RACK)
   const okey = indicator ? okeyFromIndicator(indicator) : null
-  // Phones in portrait get a 3x10 rack so tiles stay big enough to tap.
-  const rackCols = useMediaQuery('(max-width: 600px)') ? 10 : RACK_COLS
   // Always reconcile, so the rack can never lose or duplicate a tile.
   const rack = syncRack(savedRack, tiles.map((t) => t.id))
 
@@ -36,7 +33,7 @@ export default function App() {
   }
 
   const autoSort = (groups: MeldTile[][]) => {
-    if (indicator) setRack(layoutGroups(resolveHand(tiles, indicator), groups, rackCols))
+    if (indicator) setRack(layoutGroups(resolveHand(tiles, indicator), groups))
   }
 
   const addTile = (t: { kind: 'false' } | Face) => {
@@ -52,7 +49,6 @@ export default function App() {
       <TilePicker tiles={tiles} indicator={indicator} okey={okey} onAdd={addTile} />
       <Rack
         rack={rack}
-        cols={rackCols}
         tiles={tiles}
         okey={okey}
         onChange={setRack}

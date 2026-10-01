@@ -40,19 +40,6 @@ describe('layoutGroups', () => {
     expect(rack.slice(RACK_COLS, RACK_COLS + 3).every((x) => x !== null)).toBe(true)
   })
 
-  it('fits a narrower rack by moving groups down a row', () => {
-    const tiles = resolveHand(parseHand('R1 R2 R3 R4 R5 R6 R7 Y9 B9 K9'), parseFace('K13'))
-    const s = solve(toCounts(tiles))
-    const rack = layoutGroups(
-      tiles,
-      s.melds.map((m) => m.tiles),
-      10,
-    )
-    // 7-run + gap fills cols 0-7; the 3-set does not fit in cols 8-9, so it starts row 2.
-    expect(rack.slice(7, 10)).toEqual([null, null, null])
-    expect(rack.slice(10, 13).every((x) => x !== null)).toBe(true)
-  })
-
   it('lays out pairs', () => {
     const tiles = resolveHand(parseHand('R1 R1 Y4 Y4 B7'), parseFace('K13'))
     const rack = layoutGroups(tiles, findPairs(toCounts(tiles)).pairs)

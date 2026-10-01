@@ -2,7 +2,7 @@
   container-type: inline-size;
 }
 
-/* Slots shrink to fit the screen; --cols is set from the component (15 or 10). */
+/* 2 rows of 15 slots, shrinking to fit the screen. */
 .rack {
   --cols: 15;
   --gap: 3px;
@@ -65,6 +65,15 @@
 @media (max-width: 600px) {
   .rack {
     --pad: 6px;
+    --gap: 2px;
+  }
+
+  .slot .tile {
+    --w: var(--slot);
+  }
+
+  .slot .tile .tag {
+    letter-spacing: 0;
   }
 
   .toolbar button {

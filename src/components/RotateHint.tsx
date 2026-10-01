@@ -9,7 +9,7 @@ export function RotateHint() {
   if (!portraitPhone || dismissed) return null
   return (
     <div className="rotate-hint" role="note">
-      <span>Telefonu yatay çevirirsen ıstaka tek parça ve taşlar daha büyük görünür.</span>
+      <span>Telefonu yatay çevirirsen taşlar çok daha büyük görünür.</span>
       <button type="button" onClick={() => setDismissed(true)}>
         Tamam
       </button>

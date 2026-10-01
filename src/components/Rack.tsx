@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { moveTile, type Rack as RackSlots } from '../engine/layout'
 import type { Face, HandTile } from '../engine/tiles'
 import { Tile } from './Tile'
@@ -6,8 +6,6 @@ import './Rack.css'
 
 interface Props {
   rack: RackSlots
-  /** Slots per row: 15 (2 rows) or 10 (3 rows) on narrow screens. */
-  cols: number
   tiles: HandTile[]
   okey: Face | null
   onChange: (rack: RackSlots) => void
@@ -16,8 +14,8 @@ interface Props {
   actions?: ReactNode
 }
 
-/** The rack (ıstaka). Tap a tile, then tap another slot to move it there (or swap). */
-export function Rack({ rack, cols, tiles, okey, onChange, onRemove, actions }: Props) {
+/** Two-row rack (ıstaka). Tap a tile, then tap another slot to move it there (or swap). */
+export function Rack({ rack, tiles, okey, onChange, onRemove, actions }: Props) {
   const [selected, setSelected] = useState<number | null>(null)
   const byId = new Map(tiles.map((t) => [t.id, t]))
 
@@ -36,7 +34,7 @@ export function Rack({ rack, cols, tiles, okey, onChange, onRemove, actions }: P
     <section className="panel">
       <h2>Istaka</h2>
       <div className="rack-wrap">
-        <div className="rack" style={{ '--cols': cols } as CSSProperties}>
+        <div className="rack">
           {rack.map((id, i) => {
             const tile = id !== null ? byId.get(id) : undefined
             return (
