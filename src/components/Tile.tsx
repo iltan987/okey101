@@ -24,19 +24,30 @@ export function Tile({ tile, okey, selected, disabled, small, onClick, title }: 
     .filter(Boolean)
     .join(' ')
 
+  const face =
+    tile.kind === 'face' ? (
+      <>
+        <span className="num">{tile.n}</span>
+        {isJoker && <span className="tag">OKEY</span>}
+      </>
+    ) : (
+      <>
+        <span className="num">★</span>
+        {okey && <span className={`tag ${okey.color}`}>{okey.n}</span>}
+      </>
+    )
+
+  // Display-only tiles aren't buttons, so they can sit inside other buttons.
+  if (!onClick) {
+    return (
+      <span className={classes} title={title}>
+        {face}
+      </span>
+    )
+  }
   return (
     <button type="button" className={classes} disabled={disabled} onClick={onClick} title={title}>
-      {tile.kind === 'face' ? (
-        <>
-          <span className="num">{tile.n}</span>
-          {isJoker && <span className="tag">OKEY</span>}
-        </>
-      ) : (
-        <>
-          <span className="num">★</span>
-          {okey && <span className={`tag ${okey.color}`}>{okey.n}</span>}
-        </>
-      )}
+      {face}
     </button>
   )
 }

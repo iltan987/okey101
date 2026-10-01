@@ -20,6 +20,10 @@
   gap: 2px;
 }
 
+span.tile {
+  cursor: inherit;
+}
+
 .tile.small {
   --w: 30px;
 }
