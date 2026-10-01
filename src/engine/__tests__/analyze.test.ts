@@ -4,15 +4,13 @@ import { parseFace, parseHand } from '../tiles'
 import { mulberry32, randomHand } from './helpers'
 
 describe('analyze', () => {
-  it('reports opening, pairs and racks for a hand', () => {
+  it('reports opening and pairs for a hand', () => {
     const a = analyze({
       tiles: parseHand('R10 R11 R12 R13 Y11 B11 K11 B5 B6 B7 B8 Y2 K3'),
       indicator: parseFace('K13'),
     })
     expect(a.melds.points).toBe(105)
     expect(a.canOpenMelds).toBe(true)
-    expect(a.meldRack.filter((x) => x !== null)).toHaveLength(13)
-    expect(a.pairsRack.filter((x) => x !== null)).toHaveLength(13)
     expect(a.discards).toBeNull()
   })
 

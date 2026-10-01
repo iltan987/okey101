@@ -1,11 +1,11 @@
 import type { MeldTile } from './melds'
 import { faceIndex, type ResolvedTile } from './tiles'
 
+/** A rack always has 30 slots: 2 rows of 15 on wide screens, 3 rows of 10 on phones. */
+export const RACK_SLOTS = 30
 export const RACK_COLS = 15
-export const RACK_ROWS = 2
-export const RACK_SLOTS = RACK_COLS * RACK_ROWS
 
-/** Tile id per rack slot, row by row; null = empty slot. */
+/** Tile id per rack slot, row by row (`cols` per row); null = empty slot. */
 export type Rack = (string | null)[]
 
 /**
@@ -13,12 +13,12 @@ export type Rack = (string | null)[]
  * a group across rows, then the leftover tiles sorted by color and number.
  * Falls back to fewer gaps if the rack would overflow.
  */
-export function layoutGroups(tiles: ResolvedTile[], groups: MeldTile[][]): Rack {
+export function layoutGroups(tiles: ResolvedTile[], groups: MeldTile[][], cols = RACK_COLS): Rack {
   const { groupIds, leftoverIds } = assignIds(tiles, groups)
   return (
-    place(groupIds, leftoverIds, { gaps: true, keepRows: true }) ??
-    place(groupIds, leftoverIds, { gaps: false, keepRows: true }) ??
-    place(groupIds, leftoverIds, { gaps: false, keepRows: false })!
+    place(groupIds, leftoverIds, cols, { gaps: true, keepRows: true }) ??
+    place(groupIds, leftoverIds, cols, { gaps: false, keepRows: true }) ??
+    place(groupIds, leftoverIds, cols, { gaps: false, keepRows: false })!
   )
 }
 
@@ -40,15 +40,20 @@ function assignIds(tiles: ResolvedTile[], groups: MeldTile[][]) {
   return { groupIds, leftoverIds }
 }
 
-function place(groups: string[][], leftovers: string[], opts: { gaps: boolean; keepRows: boolean }): Rack | null {
+function place(
+  groups: string[][],
+  leftovers: string[],
+  cols: number,
+  opts: { gaps: boolean; keepRows: boolean },
+): Rack | null {
   const rack: Rack = new Array(RACK_SLOTS).fill(null)
   let pos = 0
   for (const g of groups) {
-    const col = pos % RACK_COLS
-    if (opts.keepRows && col + g.length > RACK_COLS) pos += RACK_COLS - col
+    const col = pos % cols
+    if (opts.keepRows && col + g.length > cols) pos += cols - col
     if (pos + g.length > RACK_SLOTS) return null
     for (const id of g) rack[pos++] = id
-    if (opts.gaps && pos % RACK_COLS !== 0) pos++
+    if (opts.gaps && pos % cols !== 0) pos++
   }
   if (pos + leftovers.length > RACK_SLOTS) return null
   for (const id of leftovers) rack[pos++] = id

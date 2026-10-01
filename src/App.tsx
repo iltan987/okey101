@@ -3,8 +3,9 @@ import { IndicatorPicker } from './components/IndicatorPicker'
 import { Rack } from './components/Rack'
 import { ResultsPanel } from './components/ResultsPanel'
 import { TilePicker } from './components/TilePicker'
-import { RACK_SLOTS, syncRack, type Rack as RackSlots } from './engine/layout'
-import { okeyFromIndicator, type Face, type HandTile } from './engine/tiles'
+import { layoutGroups, RACK_COLS, RACK_SLOTS, syncRack, type Rack as RackSlots } from './engine/layout'
+import type { MeldTile } from './engine/melds'
+import { okeyFromIndicator, resolveHand, type Face, type HandTile } from './engine/tiles'
 import { useAnalysis } from './hooks/useAnalysis'
 import { usePersistentState } from './hooks/usePersistentState'
 import './App.css'
@@ -30,6 +31,10 @@ export default function App() {
     setRack(syncRack(rack, next.map((t) => t.id)))
   }
 
+  const autoSort = (groups: MeldTile[][]) => {
+    if (indicator) setRack(layoutGroups(resolveHand(tiles, indicator), groups, RACK_COLS))
+  }
+
   const addTile = (t: { kind: 'false' } | Face) => {
     const id = crypto.randomUUID()
     updateTiles([...tiles, 'kind' in t ? { id, kind: 'false' } : { id, kind: 'face', ...t }])
@@ -52,11 +57,11 @@ export default function App() {
               type="button"
               className="primary"
               disabled={!result || pending}
-              onClick={() => result && setRack(result.meldRack)}
+              onClick={() => result && autoSort(result.melds.melds.map((m) => m.tiles))}
             >
               Otomatik diz: per / seri
             </button>
-            <button type="button" disabled={!result || pending} onClick={() => result && setRack(result.pairsRack)}>
+            <button type="button" disabled={!result || pending} onClick={() => result && autoSort(result.pairs.pairs)}>
               Otomatik diz: çift
             </button>
             <button type="button" disabled={tiles.length === 0} onClick={() => updateTiles([])}>
