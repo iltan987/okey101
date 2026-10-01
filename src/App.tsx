@@ -4,9 +4,11 @@ import { IndicatorPicker } from './components/IndicatorPicker'
 import { Rack } from './components/Rack'
 import { ResultsPanel } from './components/ResultsPanel'
 import { RotateHint } from './components/RotateHint'
+import { RulesPanel } from './components/RulesPanel'
 import { TilePicker } from './components/TilePicker'
 import { layoutGroups, RACK_SLOTS, syncRack, type Rack as RackSlots } from './engine/layout'
 import type { MeldTile } from './engine/melds'
+import { withDefaults, type Rules } from './engine/rules'
 import { okeyFromIndicator, resolveHand, sameFace, type Face, type HandTile } from './engine/tiles'
 import { useAnalysis } from './hooks/useAnalysis'
 import { usePersistentState } from './hooks/usePersistentState'
@@ -25,13 +27,15 @@ export default function App() {
   const [indicator, setIndicator] = usePersistentState<Face | null>('okey101.indicator', null)
   const [tiles, setTiles] = usePersistentState<HandTile[]>('okey101.tiles', [])
   const [savedRack, setRack] = usePersistentState<RackSlots>('okey101.rack', EMPTY_RACK)
+  const [savedRules, setRules] = usePersistentState<Partial<Rules>>('okey101.rules', {})
+  const rules = withDefaults(savedRules)
   const okey = indicator ? okeyFromIndicator(indicator) : null
   // Always reconcile, so the rack can never lose or duplicate a tile.
   const rack = syncRack(savedRack, tiles.map((t) => t.id))
 
   const input = useMemo(
-    () => (indicator && tiles.length > 0 ? { tiles, indicator } : null),
-    [tiles, indicator],
+    () => (indicator && tiles.length > 0 ? { tiles, indicator, rules: savedRules } : null),
+    [tiles, indicator, savedRules],
   )
   const { result, pending } = useAnalysis(input)
 
@@ -141,6 +145,7 @@ export default function App() {
         }
       />
       <ResultsPanel analysis={result} okey={okey} pending={pending} onDiscard={discard} />
+      <RulesPanel rules={rules} onChange={setRules} />
     </>
   )
 }
