@@ -31,6 +31,16 @@ interface Candidate {
   jokers: number
 }
 
+interface State {
+  gain: number
+  /** Number of melds in the best continuation. */
+  melds: number
+  /** Meld containing the lowest remaining tile, or null if that tile stays in hand. */
+  choice: Candidate | null
+}
+
+const EMPTY: State = { gain: 0, melds: 0, choice: null }
+
 /**
  * Finds the best way to split the hand into sets and runs.
  *
@@ -42,7 +52,7 @@ export function solve(hand: Counts, opts: SolveOptions = {}): Solution {
   const objective = opts.objective ?? 'points'
   const jokerPenalty = opts.jokerPenalty ?? DEFAULT_JOKER_PENALTY
   const counts = hand.counts.slice()
-  const memo = new Map<string, { gain: number; choice: Candidate | null }>()
+  const memo = new Map<string, State>()
 
   const gainOf = (m: Meld) =>
     m.tiles.reduce((sum, t) => sum + (t.joker && objective === 'penalty' ? jokerPenalty : t.face.n), 0)
@@ -116,29 +126,28 @@ export function solve(hand: Counts, opts: SolveOptions = {}): Solution {
     }
   }
 
-  function best(jokers: number): number {
+  /** Best gain from the current state; ties go to fewer (so longer) melds, which read better on the rack. */
+  function best(jokers: number): State {
     const i = counts.findIndex((x) => x > 0)
-    if (i < 0) return 0
+    if (i < 0) return EMPTY
     const key = counts.join('') + jokers
     const hit = memo.get(key)
-    if (hit) return hit.gain
+    if (hit) return hit
 
     counts[i]--
-    let gain = best(jokers)
+    let state: State = { ...best(jokers), choice: null }
     counts[i]++
-    let choice: Candidate | null = null
 
     for (const c of candidates(i, jokers)) {
       take(c, -1)
-      const g = gainOf(c.meld) + best(jokers - c.jokers)
+      const rest = best(jokers - c.jokers)
       take(c, +1)
-      if (g > gain) {
-        gain = g
-        choice = c
-      }
+      const gain = gainOf(c.meld) + rest.gain
+      const melds = rest.melds + 1
+      if (gain > state.gain || (gain === state.gain && melds < state.melds)) state = { gain, melds, choice: c }
     }
-    memo.set(key, { gain, choice })
-    return gain
+    memo.set(key, state)
+    return state
   }
 
   best(hand.jokers)

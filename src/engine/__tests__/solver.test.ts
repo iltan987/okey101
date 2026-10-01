@@ -50,6 +50,10 @@ describe('solve', () => {
     expect(solveHand('R3 R4 R5 R3 R4 R5').points).toBe(24)
   })
 
+  it('keeps a long run whole instead of splitting it on ties', () => {
+    expect(labels(solveHand('R1 R2 R3 R4 R5 R6'))).toEqual(['R1 R2 R3 R4 R5 R6'])
+  })
+
   it('charges the joker penalty for an unplayed okey', () => {
     const s = solveHand('K1 R1', 'K13', { objective: 'penalty' })
     expect(s.leftoverJokers).toBe(1)
