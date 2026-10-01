@@ -37,7 +37,7 @@ export default function App() {
 
   return (
     <>
-      <h1>Okey 101 Optimizer</h1>
+      <h1>Okey 101 Yardımcısı</h1>
       <IndicatorPicker indicator={indicator} onChange={setIndicator} />
       <TilePicker tiles={tiles} indicator={indicator} okey={okey} onAdd={addTile} />
       <Rack
@@ -54,13 +54,13 @@ export default function App() {
               disabled={!result || pending}
               onClick={() => result && setRack(result.meldRack)}
             >
-              Auto sort: melds
+              Otomatik diz: per / seri
             </button>
             <button type="button" disabled={!result || pending} onClick={() => result && setRack(result.pairsRack)}>
-              Auto sort: pairs
+              Otomatik diz: çift
             </button>
             <button type="button" disabled={tiles.length === 0} onClick={() => updateTiles([])}>
-              Clear hand
+              Eli temizle
             </button>
           </>
         }

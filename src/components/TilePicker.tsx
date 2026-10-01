@@ -14,7 +14,7 @@ export function TilePicker({ tiles, indicator, okey, onAdd }: Props) {
   return (
     <section className="panel">
       <h2>
-        Add tiles <small>{tiles.length} / {MAX_HAND}</small>
+        Taş ekle <small>{tiles.length} / {MAX_HAND}</small>
       </h2>
       <FaceGrid okey={okey} onPick={onAdd} isDisabled={(f) => !canAddTile(tiles, indicator, f)}>
         <div className="face-row">
@@ -24,9 +24,9 @@ export function TilePicker({ tiles, indicator, okey, onAdd }: Props) {
             okey={okey}
             disabled={!canAddTile(tiles, indicator, falseOkey)}
             onClick={() => onAdd(falseOkey)}
-            title="False okey (sahte okey)"
+            title="Sahte okey"
           />
-          <span className="hint">False okey (sahte okey)</span>
+          <span className="hint">Sahte okey</span>
         </div>
       </FaceGrid>
     </section>

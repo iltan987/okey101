@@ -32,7 +32,7 @@ export function Rack({ rack, tiles, okey, onChange, onRemove, actions }: Props) 
 
   return (
     <section className="panel">
-      <h2>Rack</h2>
+      <h2>Istaka</h2>
       <div className="rack" style={{ gridTemplateColumns: `repeat(${RACK_COLS}, var(--slot))` }}>
         {rack.map((id, i) => {
           const tile = id !== null ? byId.get(id) : undefined
@@ -53,7 +53,7 @@ export function Rack({ rack, tiles, okey, onChange, onRemove, actions }: Props) 
             setSelected(null)
           }}
         >
-          Remove tile
+          Taşı kaldır
         </button>
       </div>
     </section>

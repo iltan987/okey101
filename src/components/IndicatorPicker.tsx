@@ -1,5 +1,6 @@
-import { faceLabel, okeyFromIndicator, sameFace, type Face } from '../engine/tiles'
+import { okeyFromIndicator, sameFace, type Face } from '../engine/tiles'
 import { FaceGrid } from './FaceGrid'
+import { faceName } from './labels'
 
 interface Props {
   indicator: Face | null
@@ -11,10 +12,10 @@ export function IndicatorPicker({ indicator, onChange }: Props) {
   return (
     <section className="panel">
       <h2>
-        Indicator tile{' '}
+        Gösterge taşı{' '}
         {indicator && okey && (
           <small>
-            {faceLabel(indicator)} → okey is <b className={okey.color}>{faceLabel(okey)}</b>
+            {faceName(indicator)} → okey: <b className={okey.color}>{faceName(okey)}</b>
           </small>
         )}
       </h2>

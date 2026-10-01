@@ -2,7 +2,8 @@ import { OPEN_POINTS, type Analysis } from '../engine/analyze'
 import type { DiscardOption } from '../engine/discard'
 import type { MeldTile } from '../engine/melds'
 import { PAIRS_TO_OPEN } from '../engine/pairs'
-import { faceLabel, type Face } from '../engine/tiles'
+import type { Face } from '../engine/tiles'
+import { faceName } from './labels'
 import { Tile } from './Tile'
 import './ResultsPanel.css'
 
@@ -16,43 +17,43 @@ export function ResultsPanel({ analysis, okey, pending }: Props) {
   if (!okey) {
     return (
       <section className="panel results">
-        <p className="hint">Pick the indicator tile to start.</p>
+        <p className="hint">Başlamak için gösterge taşını seç.</p>
       </section>
     )
   }
   if (!analysis) {
     return (
       <section className="panel results">
-        <p className="hint">{pending ? 'Analyzing…' : 'Add tiles to your hand.'}</p>
+        <p className="hint">{pending ? 'Hesaplanıyor…' : 'Eline taş ekle.'}</p>
       </section>
     )
   }
 
   const { melds, pairs, lowestPenalty, canOpenMelds, discards } = analysis
   const recommendation = canOpenMelds
-    ? 'Open with melds (per / seri).'
+    ? 'Per / seri ile açabilirsin.'
     : pairs.canOpen
-      ? 'Open with pairs (çift).'
-      : `Not ready to open: ${OPEN_POINTS - melds.points} points or ${PAIRS_TO_OPEN - pairs.pairs.length} pairs short.`
+      ? 'Çift ile açabilirsin.'
+      : `Henüz açamazsın: ${OPEN_POINTS - melds.points} puan ya da ${PAIRS_TO_OPEN - pairs.pairs.length} çift eksik.`
 
   return (
     <section className={`panel results${pending ? ' stale' : ''}`}>
-      <h2>Results</h2>
+      <h2>Sonuçlar</h2>
       <p className="recommendation">{recommendation}</p>
 
       <div className="stats">
-        <Stat label="Meld points" value={`${melds.points} / ${OPEN_POINTS}`} ok={canOpenMelds} />
-        <Stat label="Pairs" value={`${pairs.pairs.length} / ${PAIRS_TO_OPEN}`} ok={pairs.canOpen} />
+        <Stat label="Per puanı" value={`${melds.points} / ${OPEN_POINTS}`} ok={canOpenMelds} />
+        <Stat label="Çift sayısı" value={`${pairs.pairs.length} / ${PAIRS_TO_OPEN}`} ok={pairs.canOpen} />
         <Stat
-          label="Lowest leftover penalty"
+          label="En düşük ceza"
           value={String(lowestPenalty.penalty)}
-          note={lowestPenalty.leftoverJokers > 0 ? 'includes an unplayed okey' : undefined}
+          note={lowestPenalty.leftoverJokers > 0 ? 'elde kalan okey dahil' : undefined}
         />
       </div>
 
       {melds.melds.length > 0 && (
         <>
-          <h3>Best melds</h3>
+          <h3>En iyi perler</h3>
           <div className="groups">
             {melds.melds.map((m, i) => (
               <Group key={i} tiles={m.tiles} okey={okey} />
@@ -63,10 +64,10 @@ export function ResultsPanel({ analysis, okey, pending }: Props) {
 
       {discards && (
         <>
-          <h3>Suggested discard</h3>
+          <h3>Önerilen atış</h3>
           <div className="discards">
-            <Discards title="Playing melds" options={discards.melds} okey={okey} detail={(o) => `${o.points} pts`} />
-            <Discards title="Playing pairs" options={discards.pairs} okey={okey} detail={(o) => `${o.pairs} pairs`} />
+            <Discards title="Per oynarken" options={discards.melds} okey={okey} detail={(o) => `${o.points} puan`} />
+            <Discards title="Çift oynarken" options={discards.pairs} okey={okey} detail={(o) => `${o.pairs} çift`} />
           </div>
         </>
       )}
@@ -98,7 +99,7 @@ function Group({ tiles, okey }: { tiles: MeldTile[]; okey: Face }) {
             small
             tile={{ id: '', kind: 'face', ...face }}
             okey={okey}
-            title={t.joker ? `Okey as ${faceLabel(t.face)}` : undefined}
+            title={t.joker ? `Okey, ${faceName(t.face)} yerine` : undefined}
           />
         )
       })}

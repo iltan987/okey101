@@ -1,4 +1,4 @@
-import { faceLabel, sameFace, type Face, type HandTile } from '../engine/tiles'
+import { sameFace, type Face, type HandTile } from '../engine/tiles'
 import './Tile.css'
 
 interface Props {
@@ -34,7 +34,7 @@ export function Tile({ tile, okey, selected, disabled, small, onClick, title }: 
       ) : (
         <>
           <span className="num">★</span>
-          {okey && <span className={`tag ${okey.color}`}>{faceLabel(okey)}</span>}
+          {okey && <span className={`tag ${okey.color}`}>{okey.n}</span>}
         </>
       )}
     </button>
