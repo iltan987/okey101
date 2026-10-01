@@ -1,0 +1,47 @@
+.rack {
+  --slot: 44px;
+  display: grid;
+  gap: 4px 3px;
+  padding: 10px;
+  border-radius: 8px;
+  background: linear-gradient(#a9733f, #8a5a2e);
+  overflow-x: auto;
+}
+
+.slot {
+  width: var(--slot);
+  height: calc(40px * 1.35 + 4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.toolbar button {
+  font: inherit;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  cursor: pointer;
+}
+
+.toolbar button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.toolbar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

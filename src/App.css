@@ -28,8 +28,3 @@ h2 small {
   font-size: 14px;
 }
 
-.hand {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
