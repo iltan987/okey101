@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { findPairs } from '../pairs'
+import { DEFAULT_RULES } from '../rules'
 import { faceLabel, parseFace, parseHand, resolveHand, toCounts } from '../tiles'
 
 // Okey = K1, so "K1" is a joker.
@@ -37,6 +38,14 @@ describe('findPairs', () => {
     const r = pairsOf('F K1')
     expect(r.pairs).toHaveLength(1)
     expect(r.leftoverJokers).toBe(0)
+  })
+
+  it('does not use the okey as a wildcard when the rule is off', () => {
+    const counts = toCounts(resolveHand(parseHand('R2 R12 K1 F F'), parseFace('K13')))
+    const r = findPairs(counts, { ...DEFAULT_RULES, okeyInPairs: false })
+    expect(r.pairs).toHaveLength(1) // the two false okeys only
+    expect(r.leftoverJokers).toBe(1)
+    expect(r.penalty).toBe(2 + 12 + 101)
   })
 
   it('pairs two jokers together when no singles are left', () => {

@@ -12,12 +12,13 @@ export interface PairsResult {
 }
 
 /**
- * Builds as many pairs as possible. Jokers pair with the highest single tiles first,
- * which keeps the leftover penalty as low as possible.
+ * Builds as many pairs as possible. If the okey may complete pairs, jokers pair with the
+ * highest single tiles first, which keeps the leftover penalty as low as possible.
+ * Two okeys always form a pair: they are identical tiles.
  */
 export function findPairs(
   hand: Counts,
-  { jokerPenalty, pairsToOpen }: Pick<Rules, 'jokerPenalty' | 'pairsToOpen'> = DEFAULT_RULES,
+  { jokerPenalty, pairsToOpen, okeyInPairs }: Pick<Rules, 'jokerPenalty' | 'pairsToOpen' | 'okeyInPairs'> = DEFAULT_RULES,
 ): PairsResult {
   const pairs: [MeldTile, MeldTile][] = []
   const singles: Face[] = []
@@ -29,7 +30,7 @@ export function findPairs(
 
   singles.sort((a, b) => b.n - a.n)
   let jokers = hand.jokers
-  while (jokers > 0 && singles.length > 0) {
+  while (okeyInPairs && jokers > 0 && singles.length > 0) {
     const face = singles.shift()!
     pairs.push([{ face, joker: false }, { face, joker: true }])
     jokers--
