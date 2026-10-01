@@ -1,8 +1,11 @@
+import { useMemo } from 'react'
 import { IndicatorPicker } from './components/IndicatorPicker'
 import { Rack } from './components/Rack'
+import { ResultsPanel } from './components/ResultsPanel'
 import { TilePicker } from './components/TilePicker'
 import { RACK_SLOTS, syncRack, type Rack as RackSlots } from './engine/layout'
 import { okeyFromIndicator, type Face, type HandTile } from './engine/tiles'
+import { useAnalysis } from './hooks/useAnalysis'
 import { usePersistentState } from './hooks/usePersistentState'
 import './App.css'
 
@@ -15,6 +18,12 @@ export default function App() {
   const okey = indicator ? okeyFromIndicator(indicator) : null
   // Always reconcile, so the rack can never lose or duplicate a tile.
   const rack = syncRack(savedRack, tiles.map((t) => t.id))
+
+  const input = useMemo(
+    () => (indicator && tiles.length > 0 ? { tiles, indicator } : null),
+    [tiles, indicator],
+  )
+  const { result, pending } = useAnalysis(input)
 
   const updateTiles = (next: HandTile[]) => {
     setTiles(next)
@@ -38,11 +47,25 @@ export default function App() {
         onChange={setRack}
         onRemove={(id) => updateTiles(tiles.filter((t) => t.id !== id))}
         actions={
-          <button type="button" disabled={tiles.length === 0} onClick={() => updateTiles([])}>
-            Clear hand
-          </button>
+          <>
+            <button
+              type="button"
+              className="primary"
+              disabled={!result || pending}
+              onClick={() => result && setRack(result.meldRack)}
+            >
+              Auto sort: melds
+            </button>
+            <button type="button" disabled={!result || pending} onClick={() => result && setRack(result.pairsRack)}>
+              Auto sort: pairs
+            </button>
+            <button type="button" disabled={tiles.length === 0} onClick={() => updateTiles([])}>
+              Clear hand
+            </button>
+          </>
         }
       />
+      <ResultsPanel analysis={result} okey={okey} pending={pending} />
     </>
   )
 }

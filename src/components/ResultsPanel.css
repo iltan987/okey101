@@ -1,0 +1,76 @@
+.results.stale {
+  opacity: 0.6;
+}
+
+.results h3 {
+  font-size: 15px;
+  margin: 16px 0 8px;
+}
+
+.recommendation {
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.stat {
+  min-width: 140px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.stat.ok {
+  border-color: var(--accent);
+  background: rgba(31, 122, 77, 0.08);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.stat-note {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.group {
+  display: flex;
+  gap: 2px;
+}
+
+.discards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+}
+
+.discards ol {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.discards li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
