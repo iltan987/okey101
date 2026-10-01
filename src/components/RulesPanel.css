@@ -63,6 +63,11 @@
   accent-color: var(--accent);
 }
 
+.rules-panel h3 {
+  margin: 16px 0 0;
+  font-size: 15px;
+}
+
 .rules-reset {
   margin-top: 12px;
   min-height: 36px;

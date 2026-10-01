@@ -51,8 +51,16 @@ export function RulesPanel({ rules, onChange }: Props) {
         {number('openPoints', 'Per ile açmak için puan', 1)}
         {number('pairsToOpen', 'Çift ile açmak için çift sayısı', 1)}
         {number('jokerPenalty', 'Elde kalan okey cezası', 0)}
+        {number('pairsPenaltyMultiplier', 'Çift açanın cezası', 1, '×')}
         {toggle('wrapRuns', '12-13-1 serisi geçerli')}
         {toggle('okeyInPairs', 'Okey çift tamamlayabilir')}
+      </div>
+      <h3>İşleme</h3>
+      <div className="rules-grid">
+        {toggle('layoffSameTurn', 'Açtığın el işleyebilirsin')}
+        {number('layoffMaxPerSide', 'Bir perin bir ucuna en fazla (0 = sınırsız)', 0)}
+        {toggle('pairsOpenerCanMeld', 'Çift açan yeni per açabilir')}
+        {toggle('okeySwap', 'Masadaki okeyi alma önerisi')}
       </div>
       <button type="button" className="rules-reset" disabled={!changed} onClick={() => onChange(DEFAULT_RULES)}>
         Varsayılana dön
