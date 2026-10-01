@@ -8,6 +8,7 @@ A web app for the Turkish tile game **Okey 101**. Enter your tiles and it finds 
 - **Discard suggestion:** with 22 tiles, the best tile to throw away (one tap to discard it).
 - **Auto-sort:** lays out the rack with melds (or pairs) grouped and the rest sorted.
 - **After opening (işleme):** enter the melds on the table and it plans what to lay off where, new melds or pairs, and okeys you can take from the table, minimizing what's left in hand.
+- **Quick table entry:** "Perlerle aç" / "Çiftlerle aç" moves your opening from the rack to the table, "Oynadım" applies the lay-off plan, and a run can be entered by tapping just its two ends.
 - **Undo** for every change (Geri al / Ctrl+Z).
 
 The okey is indicator + 1 in the same color (13 → 1), and false okeys play as the okey's face. Table rules vary, so they're configurable under **Kurallar**:
