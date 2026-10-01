@@ -11,9 +11,11 @@ interface Props {
   analysis: Analysis | null
   okey: Face | null
   pending: boolean
+  /** Removes one copy of the face from the hand. */
+  onDiscard: (face: Face) => void
 }
 
-export function ResultsPanel({ analysis, okey, pending }: Props) {
+export function ResultsPanel({ analysis, okey, pending, onDiscard }: Props) {
   if (!okey) {
     return (
       <section className="panel results">
@@ -66,8 +68,22 @@ export function ResultsPanel({ analysis, okey, pending }: Props) {
         <>
           <h3>Önerilen atış</h3>
           <div className="discards">
-            <Discards title="Per oynarken" options={discards.melds} okey={okey} detail={(o) => `${o.points} puan`} />
-            <Discards title="Çift oynarken" options={discards.pairs} okey={okey} detail={(o) => `${o.pairs} çift`} />
+            <Discards
+              title="Per oynarken"
+              options={discards.melds}
+              okey={okey}
+              detail={(o) => `${o.points} puan`}
+              disabled={pending}
+              onDiscard={onDiscard}
+            />
+            <Discards
+              title="Çift oynarken"
+              options={discards.pairs}
+              okey={okey}
+              detail={(o) => `${o.pairs} çift`}
+              disabled={pending}
+              onDiscard={onDiscard}
+            />
           </div>
         </>
       )}
@@ -119,11 +135,15 @@ function Discards({
   options,
   okey,
   detail,
+  disabled,
+  onDiscard,
 }: {
   title: string
   options: DiscardOption[]
   okey: Face
   detail: (o: DiscardOption) => string
+  disabled: boolean
+  onDiscard: (face: Face) => void
 }) {
   return (
     <div>
@@ -131,8 +151,11 @@ function Discards({
       <ol>
         {options.map((o, i) => (
           <li key={i}>
-            <Tile small tile={tileFor(o.face, false, okey)} okey={okey} />
-            <span>{detail(o)}</span>
+            <button type="button" className="discard-option" disabled={disabled} onClick={() => onDiscard(o.face)}>
+              <Tile small tile={tileFor(o.face, false, okey)} okey={okey} />
+              <span>{detail(o)}</span>
+              <span className="discard-action">At</span>
+            </button>
           </li>
         ))}
       </ol>

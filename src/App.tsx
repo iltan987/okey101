@@ -6,7 +6,7 @@ import { RotateHint } from './components/RotateHint'
 import { TilePicker } from './components/TilePicker'
 import { layoutGroups, RACK_SLOTS, syncRack, type Rack as RackSlots } from './engine/layout'
 import type { MeldTile } from './engine/melds'
-import { okeyFromIndicator, resolveHand, type Face, type HandTile } from './engine/tiles'
+import { okeyFromIndicator, resolveHand, sameFace, type Face, type HandTile } from './engine/tiles'
 import { useAnalysis } from './hooks/useAnalysis'
 import { usePersistentState } from './hooks/usePersistentState'
 import './App.css'
@@ -34,6 +34,15 @@ export default function App() {
 
   const autoSort = (groups: MeldTile[][]) => {
     if (indicator) setRack(layoutGroups(resolveHand(tiles, indicator), groups))
+  }
+
+  // Of two copies, throw the one further along the rack: after auto-sort that's the leftover one.
+  const discard = (face: Face) => {
+    if (!indicator) return
+    const [target] = resolveHand(tiles, indicator)
+      .filter((t) => !t.joker && sameFace(t.face, face))
+      .sort((a, b) => rack.indexOf(b.id) - rack.indexOf(a.id))
+    if (target) updateTiles(tiles.filter((t) => t.id !== target.id))
   }
 
   const addTile = (t: { kind: 'false' } | Face) => {
@@ -75,7 +84,7 @@ export default function App() {
           </>
         }
       />
-      <ResultsPanel analysis={result} okey={okey} pending={pending} />
+      <ResultsPanel analysis={result} okey={okey} pending={pending} onDiscard={discard} />
     </>
   )
 }
