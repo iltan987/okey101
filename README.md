@@ -18,7 +18,7 @@ The okey is indicator + 1 in the same color (13 → 1), and false okeys play as 
 | Okey penalty in hand / pairs opener's penalty | 101 / ×2 |
 | 12-13-1 runs | off |
 | Okey can complete a pair | on |
-| Lay off on the turn you open | off |
+| Lay off on the turn you open | on |
 | Max tiles laid off per run end per turn (0 = no limit) | 2 |
 | Pairs opener may lay down new melds | off |
 | Suggest taking okeys from the table | on |

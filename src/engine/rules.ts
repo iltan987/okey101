@@ -29,7 +29,7 @@ export const DEFAULT_RULES: Rules = {
   pairsPenaltyMultiplier: 2,
   wrapRuns: false,
   okeyInPairs: true,
-  layoffSameTurn: false,
+  layoffSameTurn: true,
   layoffMaxPerSide: 2,
   pairsOpenerCanMeld: false,
   okeySwap: true,

@@ -35,13 +35,13 @@ describe('planOpened', () => {
     expect(p.penalty).toBe(0)
   })
 
-  it('waits a turn before laying off, unless same-turn lay-offs are allowed', () => {
+  it('lays off on the opening turn by default, or waits a turn if the rule says so', () => {
     const table = tableOf('R6 R7 R8')
-    const now = plan('R9 Y2', table, { openedThisTurn: true })
-    expect(now.canLayOff).toBe(false)
-    expect(now.layoffs).toHaveLength(0)
-    const allowed = plan('R9 Y2', table, { openedThisTurn: true }, { layoffSameTurn: true })
+    const allowed = plan('R9 Y2', table, { openedThisTurn: true })
     expect(allowed.layoffs).toHaveLength(1)
+    const waiting = plan('R9 Y2', table, { openedThisTurn: true }, { layoffSameTurn: false })
+    expect(waiting.canLayOff).toBe(false)
+    expect(waiting.layoffs).toHaveLength(0)
   })
 
   it('lets a melds opener lay down new melds as well as lay off', () => {
@@ -115,7 +115,7 @@ describe('planOpened', () => {
     })
 
     it('waits for lay-offs to be allowed, like other lay-offs', () => {
-      expect(plan('R6', tableOf('R5 K1 R7', 'Y9 Y10 Y11'), { openedThisTurn: true }).swaps).toHaveLength(0)
+      expect(plan('R6', tableOf('R5 K1 R7', 'Y9 Y10 Y11'), { openedThisTurn: true }, { layoffSameTurn: false }).swaps).toHaveLength(0)
     })
 
     it('can be turned off', () => {
