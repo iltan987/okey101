@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  canAddTile,
   FACE_COUNT,
   faceAt,
   faceIndex,
@@ -60,5 +61,24 @@ describe('parseHand', () => {
   it('rejects bad tokens', () => {
     expect(() => parseHand('R14')).toThrow()
     expect(() => parseHand('X3')).toThrow()
+  })
+})
+
+describe('canAddTile', () => {
+  const R5 = parseFace('R5')
+  it('allows two copies of a face', () => {
+    expect(canAddTile(parseHand('R5'), null, R5)).toBe(true)
+    expect(canAddTile(parseHand('R5 R5'), null, R5)).toBe(false)
+  })
+  it('allows only one copy of the indicator face', () => {
+    expect(canAddTile(parseHand('R5'), R5, R5)).toBe(false)
+  })
+  it('allows two false okeys', () => {
+    expect(canAddTile(parseHand('F'), R5, { kind: 'false' })).toBe(true)
+    expect(canAddTile(parseHand('F F'), R5, { kind: 'false' })).toBe(false)
+  })
+  it('caps the hand at 22 tiles', () => {
+    const full = parseHand(Array.from({ length: 22 }, (_, i) => `R${(i % 11) + 1}`).join(' '))
+    expect(canAddTile(full, null, parseFace('K13'))).toBe(false)
   })
 })

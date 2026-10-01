@@ -99,3 +99,18 @@ export function parseFace(s: string): Face {
   if (t.kind !== 'face') throw new Error(`Not a face: ${s}`)
   return { color: t.color, n: t.n }
 }
+
+/** Max tiles in hand (21 dealt, +1 after drawing). */
+export const MAX_HAND = 22
+
+/**
+ * Whether another copy of a tile can be added: the deck has 2 of each face and 2 false okeys,
+ * and the face-up indicator uses up one copy of its face.
+ */
+export function canAddTile(tiles: HandTile[], indicator: Face | null, tile: { kind: 'false' } | Face): boolean {
+  if (tiles.length >= MAX_HAND) return false
+  if ('kind' in tile) return tiles.filter((t) => t.kind === 'false').length < 2
+  const held = tiles.filter((t) => t.kind === 'face' && sameFace(t, tile)).length
+  const limit = indicator && sameFace(indicator, tile) ? 1 : 2
+  return held < limit
+}
