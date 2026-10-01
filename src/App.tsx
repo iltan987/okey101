@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { DiscardNotice } from './components/DiscardNotice'
 import { IndicatorPicker } from './components/IndicatorPicker'
 import { Rack } from './components/Rack'
@@ -10,9 +10,16 @@ import type { MeldTile } from './engine/melds'
 import { okeyFromIndicator, resolveHand, sameFace, type Face, type HandTile } from './engine/tiles'
 import { useAnalysis } from './hooks/useAnalysis'
 import { usePersistentState } from './hooks/usePersistentState'
+import { useUndoHistory } from './hooks/useUndoHistory'
 import './App.css'
 
 const EMPTY_RACK: RackSlots = new Array(RACK_SLOTS).fill(null)
+
+interface Snapshot {
+  indicator: Face | null
+  tiles: HandTile[]
+  rack: RackSlots
+}
 
 export default function App() {
   const [indicator, setIndicator] = usePersistentState<Face | null>('okey101.indicator', null)
@@ -28,13 +35,49 @@ export default function App() {
   )
   const { result, pending } = useAnalysis(input)
 
+  // Every change goes through these, so each one can be undone.
+  const history = useUndoHistory<Snapshot>()
+  const remember = () => history.push({ indicator, tiles, rack })
+
   const updateTiles = (next: HandTile[]) => {
+    remember()
     setTiles(next)
     setRack(syncRack(rack, next.map((t) => t.id)))
   }
 
+  const changeRack = (next: RackSlots) => {
+    if (next.every((id, i) => id === rack[i])) return
+    remember()
+    setRack(next)
+  }
+
+  const changeIndicator = (face: Face) => {
+    if (indicator && sameFace(face, indicator)) return
+    remember()
+    setIndicator(face)
+  }
+
+  const undo = () => {
+    const prev = history.pop()
+    if (!prev) return
+    setIndicator(prev.indicator)
+    setTiles(prev.tiles)
+    setRack(prev.rack)
+  }
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+        e.preventDefault()
+        undo()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
+
   const autoSort = (groups: MeldTile[][]) => {
-    if (indicator) setRack(layoutGroups(resolveHand(tiles, indicator), groups))
+    if (indicator) changeRack(layoutGroups(resolveHand(tiles, indicator), groups))
   }
 
   // Of two copies, throw the one further along the rack: after auto-sort that's the leftover one.
@@ -58,13 +101,13 @@ export default function App() {
         Okey 101 Yardımcısı
       </h1>
       <RotateHint />
-      <IndicatorPicker indicator={indicator} onChange={setIndicator} />
+      <IndicatorPicker indicator={indicator} onChange={changeIndicator} />
       <TilePicker tiles={tiles} indicator={indicator} okey={okey} onAdd={addTile} />
       <Rack
         rack={rack}
         tiles={tiles}
         okey={okey}
-        onChange={setRack}
+        onChange={changeRack}
         onRemove={(id) => updateTiles(tiles.filter((t) => t.id !== id))}
         notice={
           <DiscardNotice
@@ -87,6 +130,9 @@ export default function App() {
             </button>
             <button type="button" disabled={!result || pending} onClick={() => result && autoSort(result.pairs.pairs)}>
               Otomatik diz: çift
+            </button>
+            <button type="button" disabled={!history.canUndo} onClick={undo} title="Geri al (Ctrl+Z)">
+              ↶ Geri al
             </button>
             <button type="button" disabled={tiles.length === 0} onClick={() => updateTiles([])}>
               Eli temizle
