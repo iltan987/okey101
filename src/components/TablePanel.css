@@ -1,0 +1,100 @@
+.opened-state {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tp-btn {
+  min-height: 40px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tp-btn.on,
+.tp-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.tp-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.this-turn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+.this-turn input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+
+.table-melds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.table-melds li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.meld-no {
+  min-width: 18px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.meld-tiles {
+  display: flex;
+  gap: 2px;
+}
+
+.tp-btn.meld-remove {
+  min-height: 30px;
+  padding: 2px 8px;
+  font-size: 13px;
+}
+
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.meld-builder .builder-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-height: 44px;
+  align-items: center;
+  margin: 6px 0 10px;
+}
+
+.invalid {
+  color: #c62828;
+  font-size: 14px;
+}

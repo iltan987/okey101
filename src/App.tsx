@@ -5,10 +5,13 @@ import { Rack } from './components/Rack'
 import { ResultsPanel } from './components/ResultsPanel'
 import { RotateHint } from './components/RotateHint'
 import { RulesPanel } from './components/RulesPanel'
+import { TablePanel } from './components/TablePanel'
 import { TilePicker } from './components/TilePicker'
+import type { OpenedState } from './engine/analyze'
 import { layoutGroups, RACK_SLOTS, syncRack, type Rack as RackSlots } from './engine/layout'
 import type { MeldTile } from './engine/melds'
 import { withDefaults, type Rules } from './engine/rules'
+import type { TableMeld } from './engine/table'
 import { okeyFromIndicator, resolveHand, sameFace, type Face, type HandTile } from './engine/tiles'
 import { useAnalysis } from './hooks/useAnalysis'
 import { usePersistentState } from './hooks/usePersistentState'
@@ -21,6 +24,8 @@ interface Snapshot {
   indicator: Face | null
   tiles: HandTile[]
   rack: RackSlots
+  opened: OpenedState | null
+  table: TableMeld[]
 }
 
 export default function App() {
@@ -29,19 +34,21 @@ export default function App() {
   const [savedRack, setRack] = usePersistentState<RackSlots>('okey101.rack', EMPTY_RACK)
   const [savedRules, setRules] = usePersistentState<Partial<Rules>>('okey101.rules', {})
   const rules = withDefaults(savedRules)
+  const [opened, setOpened] = usePersistentState<OpenedState | null>('okey101.opened', null)
+  const [table, setTable] = usePersistentState<TableMeld[]>('okey101.table', [])
   const okey = indicator ? okeyFromIndicator(indicator) : null
   // Always reconcile, so the rack can never lose or duplicate a tile.
   const rack = syncRack(savedRack, tiles.map((t) => t.id))
 
   const input = useMemo(
-    () => (indicator && tiles.length > 0 ? { tiles, indicator, rules: savedRules } : null),
-    [tiles, indicator, savedRules],
+    () => (indicator && tiles.length > 0 ? { tiles, indicator, rules: savedRules, opened, table } : null),
+    [tiles, indicator, savedRules, opened, table],
   )
   const { result, pending } = useAnalysis(input)
 
   // Every change goes through these, so each one can be undone.
   const history = useUndoHistory<Snapshot>()
-  const remember = () => history.push({ indicator, tiles, rack })
+  const remember = () => history.push({ indicator, tiles, rack, opened, table })
 
   const updateTiles = (next: HandTile[]) => {
     remember()
@@ -67,6 +74,18 @@ export default function App() {
     setIndicator(prev.indicator)
     setTiles(prev.tiles)
     setRack(prev.rack)
+    setOpened(prev.opened)
+    setTable(prev.table)
+  }
+
+  const changeOpened = (next: OpenedState | null) => {
+    remember()
+    setOpened(next)
+  }
+
+  const changeTable = (next: TableMeld[]) => {
+    remember()
+    setTable(next)
   }
 
   useEffect(() => {
@@ -143,6 +162,15 @@ export default function App() {
             </button>
           </>
         }
+      />
+      <TablePanel
+        indicator={indicator}
+        okey={okey}
+        rules={rules}
+        opened={opened}
+        onOpenedChange={changeOpened}
+        table={table}
+        onTableChange={changeTable}
       />
       <ResultsPanel analysis={result} okey={okey} pending={pending} onDiscard={discard} />
       <RulesPanel rules={rules} onChange={setRules} />
