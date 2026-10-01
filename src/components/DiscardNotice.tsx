@@ -16,14 +16,17 @@ interface Props {
 export function DiscardNotice({ tileCount, analysis, okey, pending, onDiscard }: Props) {
   if (tileCount < FULL_HAND) return null
 
-  // Follow the opening the results recommend: pairs only when melds can't open but pairs can.
+  // Once opened, follow the lay-off plan; before that, the opening the results recommend
+  // (pairs only when melds can't open but pairs can).
   const byPairs = analysis !== null && !analysis.canOpenMelds && analysis.pairs.canOpen
-  const best = analysis?.discards?.[byPairs ? 'pairs' : 'melds'][0]
+  const openedBest = analysis?.opened?.discards?.[0]
+  const best = analysis?.opened ? openedBest : analysis?.discards?.[byPairs ? 'pairs' : 'melds'][0]
 
   return (
     <div className="discard-notice" role="status">
       <span className="discard-notice-text">
         <b>{FULL_HAND} taş:</b> bir taş atman gerekiyor.
+        {openedBest?.finishes && ' Önerilen taşı atarsan elin biter!'}
       </span>
       {best && okey && (
         <button

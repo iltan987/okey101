@@ -46,7 +46,7 @@ export interface Analysis {
   /** Only when holding a full hand. */
   discards: { melds: DiscardOption[]; pairs: DiscardOption[] } | null
   /** After opening: what to lay down and lay off, and (with a full hand) what to discard. */
-  opened: { plan: OpenedPlan; discards: OpenedDiscard[] | null } | null
+  opened: { with: OpenedState['with']; plan: OpenedPlan; discards: OpenedDiscard[] | null } | null
 }
 
 export function analyze({ tiles, indicator, rules: partialRules, opened = null, table = [] }: AnalyzeInput): Analysis {
@@ -72,7 +72,7 @@ export function analyze({ tiles, indicator, rules: partialRules, opened = null, 
 function analyzeOpened(counts: Counts, size: number, table: TableMeld[], opened: OpenedState, rules: Rules) {
   const opts = { openedWith: opened.with, openedThisTurn: opened.thisTurn, rules }
   const plan = planOpened(counts, table, opts)
-  if (size < FULL_HAND) return { plan, discards: null }
+  if (size < FULL_HAND) return { with: opened.with, plan, discards: null }
 
   // Try throwing each tile (never the okey) and play the rest; lowest penalty first.
   const discards: (OpenedDiscard & { connections: number })[] = []
@@ -85,5 +85,5 @@ function analyzeOpened(counts: Counts, size: number, table: TableMeld[], opened:
     discards.push({ face, penalty: p.penalty, finishes: p.penalty === 0 && p.leftover.length === 0, connections: connections(counts, face) })
   })
   discards.sort((a, b) => a.penalty - b.penalty || a.connections - b.connections || b.face.n - a.face.n)
-  return { plan, discards: discards.slice(0, 3).map(({ face, penalty, finishes }) => ({ face, penalty, finishes })) }
+  return { with: opened.with, plan, discards: discards.slice(0, 3).map(({ face, penalty, finishes }) => ({ face, penalty, finishes })) }
 }

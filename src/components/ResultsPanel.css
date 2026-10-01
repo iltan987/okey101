@@ -120,3 +120,22 @@
     font-size: 18px;
   }
 }
+
+.plan-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plan-list li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.plan-target {
+  font-weight: 600;
+  min-width: 110px;
+}
