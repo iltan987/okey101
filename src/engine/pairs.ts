@@ -1,9 +1,6 @@
 import type { MeldTile } from './melds'
-import { DEFAULT_JOKER_PENALTY } from './solver'
+import { DEFAULT_RULES, type Rules } from './rules'
 import { faceAt, type Counts, type Face } from './tiles'
-
-/** Pairs needed to open with çift. */
-export const PAIRS_TO_OPEN = 5
 
 export interface PairsResult {
   /** Each pair is two identical tiles, or a joker plus the tile it copies. */
@@ -18,7 +15,10 @@ export interface PairsResult {
  * Builds as many pairs as possible. Jokers pair with the highest single tiles first,
  * which keeps the leftover penalty as low as possible.
  */
-export function findPairs(hand: Counts, jokerPenalty = DEFAULT_JOKER_PENALTY): PairsResult {
+export function findPairs(
+  hand: Counts,
+  { jokerPenalty, pairsToOpen }: Pick<Rules, 'jokerPenalty' | 'pairsToOpen'> = DEFAULT_RULES,
+): PairsResult {
   const pairs: [MeldTile, MeldTile][] = []
   const singles: Face[] = []
   hand.counts.forEach((c, i) => {
@@ -42,5 +42,5 @@ export function findPairs(hand: Counts, jokerPenalty = DEFAULT_JOKER_PENALTY): P
   }
 
   const penalty = singles.reduce((sum, f) => sum + f.n, 0) + jokers * jokerPenalty
-  return { pairs, leftover: singles, leftoverJokers: jokers, canOpen: pairs.length >= PAIRS_TO_OPEN, penalty }
+  return { pairs, leftover: singles, leftoverJokers: jokers, canOpen: pairs.length >= pairsToOpen, penalty }
 }

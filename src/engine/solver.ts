@@ -1,8 +1,6 @@
 import { meldPoints, type Meld, type MeldTile } from './melds'
+import { DEFAULT_RULES } from './rules'
 import { COLORS, faceAt, faceIndex, MAX_N, type Counts, type Face } from './tiles'
-
-/** Standard 101 penalty for an okey left in hand. */
-export const DEFAULT_JOKER_PENALTY = 101
 
 export interface SolveOptions {
   /**
@@ -50,7 +48,7 @@ const EMPTY: State = { gain: 0, melds: 0, choice: null }
  */
 export function solve(hand: Counts, opts: SolveOptions = {}): Solution {
   const objective = opts.objective ?? 'points'
-  const jokerPenalty = opts.jokerPenalty ?? DEFAULT_JOKER_PENALTY
+  const jokerPenalty = opts.jokerPenalty ?? DEFAULT_RULES.jokerPenalty
   const counts = hand.counts.slice()
   const memo = new Map<string, State>()
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_JOKER_PENALTY, solve } from '../solver'
+import { DEFAULT_RULES } from '../rules'
+import { solve } from '../solver'
 import { COLORS, faceIndex, FACE_COUNT, MAX_N, type Color, type Face } from '../tiles'
 import { mulberry32 } from './helpers'
 
@@ -95,8 +96,8 @@ describe('solve matches exhaustive search', () => {
   it('finds the minimum leftover penalty', () => {
     for (const hand of hands) {
       const total =
-        hand.reduce((s, t) => s + (t === 'joker' ? DEFAULT_JOKER_PENALTY : t.n), 0)
-      const expected = total - bruteBest(hand, () => DEFAULT_JOKER_PENALTY)
+        hand.reduce((s, t) => s + (t === 'joker' ? DEFAULT_RULES.jokerPenalty : t.n), 0)
+      const expected = total - bruteBest(hand, () => DEFAULT_RULES.jokerPenalty)
       expect(solve(toSolverCounts(hand), { objective: 'penalty' }).penalty, JSON.stringify(hand)).toBe(expected)
     }
   })

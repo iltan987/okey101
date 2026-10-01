@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { connections, suggestDiscards } from '../discard'
+import { DEFAULT_RULES } from '../rules'
 import { faceLabel, parseFace, parseHand, resolveHand, toCounts } from '../tiles'
 
 // Okey = K1, so "K1" is a joker.
@@ -19,7 +20,7 @@ describe('suggestDiscards', () => {
   })
 
   it('never suggests the okey', () => {
-    const options = suggestDiscards(countsOf('K1 R2 Y7 B11'), 'melds', 10)
+    const options = suggestDiscards(countsOf('K1 R2 Y7 B11'), 'melds', DEFAULT_RULES, 10)
     expect(options).toHaveLength(3)
   })
 

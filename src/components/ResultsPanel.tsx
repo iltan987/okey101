@@ -1,7 +1,6 @@
-import { OPEN_POINTS, type Analysis } from '../engine/analyze'
+import type { Analysis } from '../engine/analyze'
 import type { DiscardOption } from '../engine/discard'
 import type { MeldTile } from '../engine/melds'
-import { PAIRS_TO_OPEN } from '../engine/pairs'
 import type { Face } from '../engine/tiles'
 import { faceName, tileFor } from './labels'
 import { Tile } from './Tile'
@@ -31,12 +30,12 @@ export function ResultsPanel({ analysis, okey, pending, onDiscard }: Props) {
     )
   }
 
-  const { melds, pairs, lowestPenalty, canOpenMelds, discards } = analysis
+  const { melds, pairs, lowestPenalty, canOpenMelds, discards, rules } = analysis
   const recommendation = canOpenMelds
     ? 'Per / seri ile açabilirsin.'
     : pairs.canOpen
       ? 'Çift ile açabilirsin.'
-      : `Henüz açamazsın: ${OPEN_POINTS - melds.points} puan ya da ${PAIRS_TO_OPEN - pairs.pairs.length} çift eksik.`
+      : `Henüz açamazsın: ${rules.openPoints - melds.points} puan ya da ${rules.pairsToOpen - pairs.pairs.length} çift eksik.`
 
   return (
     <section className={`panel results${pending ? ' stale' : ''}`}>
@@ -44,8 +43,8 @@ export function ResultsPanel({ analysis, okey, pending, onDiscard }: Props) {
       <p className="recommendation">{recommendation}</p>
 
       <div className="stats">
-        <Stat label="Per puanı" value={`${melds.points} / ${OPEN_POINTS}`} ok={canOpenMelds} />
-        <Stat label="Çift sayısı" value={`${pairs.pairs.length} / ${PAIRS_TO_OPEN}`} ok={pairs.canOpen} />
+        <Stat label="Per puanı" value={`${melds.points} / ${rules.openPoints}`} ok={canOpenMelds} />
+        <Stat label="Çift sayısı" value={`${pairs.pairs.length} / ${rules.pairsToOpen}`} ok={pairs.canOpen} />
         <Stat
           label="En düşük ceza"
           value={String(lowestPenalty.penalty)}

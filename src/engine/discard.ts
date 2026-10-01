@@ -1,4 +1,5 @@
 import { findPairs } from './pairs'
+import { DEFAULT_RULES, type Rules } from './rules'
 import { solve } from './solver'
 import { COLORS, faceAt, faceIndex, MAX_N, type Counts, type Face } from './tiles'
 
@@ -29,7 +30,12 @@ export function connections(hand: Counts, face: Face): number {
  * - `pairs`: most pairs, then lowest penalty, then fewest connections.
  * The okey is never suggested.
  */
-export function suggestDiscards(hand: Counts, strategy: 'melds' | 'pairs' = 'melds', limit = 3): DiscardOption[] {
+export function suggestDiscards(
+  hand: Counts,
+  strategy: 'melds' | 'pairs' = 'melds',
+  rules: Rules = DEFAULT_RULES,
+  limit = 3,
+): DiscardOption[] {
   const options: DiscardOption[] = []
   hand.counts.forEach((c, i) => {
     if (c === 0) return
@@ -37,8 +43,8 @@ export function suggestDiscards(hand: Counts, strategy: 'melds' | 'pairs' = 'mel
     const counts = hand.counts.slice()
     counts[i]--
     const rest = { counts, jokers: hand.jokers }
-    const melds = solve(rest)
-    const pairs = findPairs(rest)
+    const melds = solve(rest, { jokerPenalty: rules.jokerPenalty })
+    const pairs = findPairs(rest, rules)
     options.push({
       face,
       points: melds.points,
