@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { isValidMeld } from '../melds'
-import { applyLayoffs, planOpened, type OpenedOptions } from '../opened'
+import { applyLayoffs, findOkeySwaps, planOpened, type OpenedOptions } from '../opened'
 import { DEFAULT_RULES, type Rules } from '../rules'
 import { readTableMeld, type TableMeld } from '../table'
 import { COLORS, faceLabel, parseFace, parseHand, resolveHand, toCounts } from '../tiles'
@@ -91,6 +91,36 @@ describe('planOpened', () => {
     const table = tableOf('R11 R12 R13')
     expect(plan('R1', table).leftover.map(faceLabel)).toEqual(['R1'])
     expect(plan('R1', table, {}, { wrapRuns: true }).layoffs.map((l) => show(l.tiles))).toEqual(['R1'])
+  })
+
+  describe('taking an okey from the table', () => {
+    it('finds the tile an okey stands for in a run, or any missing color in a set', () => {
+      const hand = toCounts(resolveHand(parseHand('R6 B9 K9'), indicator))
+      const swaps = findOkeySwaps(hand, tableOf('R5 K1 R7', 'R9 Y9 K1'))
+      expect(swaps.map((s) => `${s.meld}:${s.index}:${faceLabel(s.give)}`)).toEqual(['0:1:R6', '1:2:B9', '1:2:K9'])
+    })
+
+    it('swaps when the taken okey can be played', () => {
+      // Give R6 for the okey, then lay the okey off on 9-10-11 → nothing left.
+      const p = plan('R6', tableOf('R5 K1 R7', 'Y9 Y10 Y11'))
+      expect(p.swaps.map((s) => faceLabel(s.give))).toEqual(['R6'])
+      expect(p.penalty).toBe(0)
+    })
+
+    it('does not swap when the taken okey could not be played', () => {
+      // A full 1-13 run has no room left: taking its okey would leave 101 in hand instead of 6.
+      const p = plan('R6', tableOf('R1 R2 R3 R4 R5 K1 R7 R8 R9 R10 R11 R12 R13'))
+      expect(p.swaps).toHaveLength(0)
+      expect(p.penalty).toBe(6)
+    })
+
+    it('waits for lay-offs to be allowed, like other lay-offs', () => {
+      expect(plan('R6', tableOf('R5 K1 R7', 'Y9 Y10 Y11'), { openedThisTurn: true }).swaps).toHaveLength(0)
+    })
+
+    it('can be turned off', () => {
+      expect(plan('R6', tableOf('R5 K1 R7', 'Y9 Y10 Y11'), {}, { okeySwap: false }).swaps).toHaveLength(0)
+    })
   })
 
   it('keeps table melds valid and conserves tiles on random hands', () => {

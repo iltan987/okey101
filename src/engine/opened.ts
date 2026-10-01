@@ -14,6 +14,16 @@ export interface Layoff {
   tiles: MeldTile[]
 }
 
+/** Take an okey from a table meld by putting down the tile it stands for. */
+export interface OkeySwap {
+  /** Index into the table melds. */
+  meld: number
+  /** Position of the okey within that meld. */
+  index: number
+  /** The tile from the hand that replaces it. */
+  give: Face
+}
+
 export interface OpenedOptions {
   openedWith: 'melds' | 'pairs'
   /** Opened on this turn: lay-offs wait for the next turn unless rules.layoffSameTurn. */
@@ -27,6 +37,8 @@ export interface OpenedPlan {
   /** New pairs from the hand (pairs openers). */
   pairs: [MeldTile, MeldTile][]
   layoffs: Layoff[]
+  /** Okeys taken from the table first (when that lowers the penalty). Lay-off indices refer to the table after them. */
+  swaps: OkeySwap[]
   leftover: Face[]
   leftoverJokers: number
   /** Value left in hand, multiplied for a pairs opener. */
@@ -65,12 +77,57 @@ function initialExt(table: TableMeld[]): number[][] {
   })
 }
 
+/** Okeys on the table that the hand could take: each okey with every tile it may stand for that the hand holds. */
+export function findOkeySwaps(hand: Counts, table: TableMeld[]): OkeySwap[] {
+  const out: OkeySwap[] = []
+  table.forEach((m, meld) => {
+    m.tiles.forEach((t, index) => {
+      if (!t.joker) return
+      // In a run the okey's face is fixed by position; in a set it may be any missing color.
+      const faces =
+        m.kind === 'run'
+          ? [t.face]
+          : COLORS.filter((c) => !m.tiles.some((x) => !x.joker && x.face.color === c)).map((color) => ({ color, n: t.face.n }))
+      for (const give of faces) if (hand.counts[faceIndex(give)] > 0) out.push({ meld, index, give })
+    })
+  })
+  return out
+}
+
 /**
- * Best way to empty the hand after opening: new melds (or pairs, for a pairs opener) and
- * lay-offs on table melds, minimizing what's left in hand. Same memoized lowest-tile-first
- * search as the opening solver, with the table's growth as part of the state.
+ * Best way to empty the hand after opening: new melds (or pairs, for a pairs opener), lay-offs on
+ * table melds, and (if allowed) taking okeys off the table, minimizing what's left in hand.
+ * Every combination of okey swaps is tried; a swap is only used if it lowers the penalty.
  */
-export function planOpened(hand: Counts, table: TableMeld[], { openedWith, openedThisTurn, rules }: OpenedOptions): OpenedPlan {
+export function planOpened(hand: Counts, table: TableMeld[], opts: OpenedOptions): OpenedPlan {
+  let bestPlan = planWithoutSwaps(hand, table, opts)
+  const canSwap = opts.rules.okeySwap && (!opts.openedThisTurn || opts.rules.layoffSameTurn)
+  if (!canSwap) return bestPlan
+
+  const options = findOkeySwaps(hand, table)
+  const tryFrom = (start: number, done: OkeySwap[], h: Counts, t: TableMeld[]) => {
+    for (let k = start; k < options.length; k++) {
+      const s = options[k]
+      // One swap per okey, and only with a tile still in hand.
+      if (done.some((d) => d.meld === s.meld && d.index === s.index)) continue
+      if (h.counts[faceIndex(s.give)] === 0) continue
+      const counts = h.counts.slice()
+      counts[faceIndex(s.give)]--
+      const nextHand = { counts, jokers: h.jokers + 1 }
+      const nextTable = t.map((m, i) =>
+        i === s.meld ? { ...m, tiles: m.tiles.map((x, j) => (j === s.index ? { face: s.give, joker: false } : x)) } : m,
+      )
+      const swaps = [...done, s]
+      const p = planWithoutSwaps(nextHand, nextTable, opts)
+      if (p.penalty < bestPlan.penalty) bestPlan = { ...p, swaps }
+      tryFrom(k + 1, swaps, nextHand, nextTable)
+    }
+  }
+  tryFrom(0, [], hand, table)
+  return bestPlan
+}
+
+function planWithoutSwaps(hand: Counts, table: TableMeld[], { openedWith, openedThisTurn, rules }: OpenedOptions): OpenedPlan {
   const { jokerPenalty, wrapRuns, okeyInPairs } = rules
   const limit = rules.layoffMaxPerSide > 0 ? rules.layoffMaxPerSide : Infinity
   const canMeld = openedWith === 'melds' || rules.pairsOpenerCanMeld
@@ -244,7 +301,7 @@ export function planOpened(hand: Counts, table: TableMeld[], { openedWith, opene
   let jokers = hand.jokers
   best(jokers, ext)
 
-  const plan: OpenedPlan = { melds: [], pairs: [], layoffs: [], leftover: [], leftoverJokers: 0, penalty: 0, canMeld, canLayOff }
+  const plan: OpenedPlan = { melds: [], pairs: [], layoffs: [], swaps: [], leftover: [], leftoverJokers: 0, penalty: 0, canMeld, canLayOff }
   for (;;) {
     const i = counts.findIndex((x) => x > 0)
     if (i < 0 && jokers === 0) break
