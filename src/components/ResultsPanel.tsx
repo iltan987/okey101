@@ -2,7 +2,7 @@ import { OPEN_POINTS, type Analysis } from '../engine/analyze'
 import type { DiscardOption } from '../engine/discard'
 import type { MeldTile } from '../engine/melds'
 import { PAIRS_TO_OPEN } from '../engine/pairs'
-import type { Face } from '../engine/tiles'
+import { sameFace, type Face, type HandTile } from '../engine/tiles'
 import { faceName } from './labels'
 import { Tile } from './Tile'
 import './ResultsPanel.css'
@@ -88,21 +88,28 @@ function Stat({ label, value, ok, note }: { label: string; value: string; ok?: b
   )
 }
 
+/**
+ * The physical tile to draw for a played face: the real okey for a joker, and a false okey
+ * for a non-joker with the okey's face (that face's real copies are all jokers).
+ */
+function tileFor(face: Face, joker: boolean, okey: Face): HandTile {
+  if (joker) return { id: '', kind: 'face', ...okey }
+  if (sameFace(face, okey)) return { id: '', kind: 'false' }
+  return { id: '', kind: 'face', ...face }
+}
+
 function Group({ tiles, okey }: { tiles: MeldTile[]; okey: Face }) {
   return (
     <div className="group">
-      {tiles.map((t, i) => {
-        const face = t.joker ? okey : t.face
-        return (
-          <Tile
-            key={i}
-            small
-            tile={{ id: '', kind: 'face', ...face }}
-            okey={okey}
-            title={t.joker ? `Okey, ${faceName(t.face)} yerine` : undefined}
-          />
-        )
-      })}
+      {tiles.map((t, i) => (
+        <Tile
+          key={i}
+          small
+          tile={tileFor(t.face, t.joker, okey)}
+          okey={okey}
+          title={t.joker ? `Okey, ${faceName(t.face)} yerine` : undefined}
+        />
+      ))}
     </div>
   )
 }
@@ -124,7 +131,7 @@ function Discards({
       <ol>
         {options.map((o, i) => (
           <li key={i}>
-            <Tile small tile={{ id: '', kind: 'face', ...o.face }} okey={okey} />
+            <Tile small tile={tileFor(o.face, false, okey)} okey={okey} />
             <span>{detail(o)}</span>
           </li>
         ))}
