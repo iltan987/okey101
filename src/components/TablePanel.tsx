@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import type { OpenedState } from '../engine/analyze'
 import type { Rules } from '../engine/rules'
-import { readTableMeld, runBetween, type TableMeld } from '../engine/table'
-import { resolveHand, sameFace, type Face, type HandTile } from '../engine/tiles'
+import { readTableMeld, runBetween, tableTiles, type TableMeld } from '../engine/table'
+import { copiesLeft, overLimit, resolveHand, sameFace, type Face, type HandTile, type TileChoice } from '../engine/tiles'
 import { FaceGrid } from './FaceGrid'
-import { tileFor } from './labels'
+import { faceName, tileFor } from './labels'
 import { Tile } from './Tile'
 import './TablePanel.css'
 
@@ -16,6 +16,8 @@ interface Props {
   onOpenedChange: (opened: OpenedState | null) => void
   table: TableMeld[]
   onTableChange: (table: TableMeld[]) => void
+  /** The hand, so the table can't use copies the hand already holds. */
+  hand: HandTile[]
 }
 
 const STATES = [
@@ -25,7 +27,7 @@ const STATES = [
 ] as const
 
 /** Whether (and how) the player has opened, and the melds on the table for lay-offs. */
-export function TablePanel({ indicator, okey, rules, opened, onOpenedChange, table, onTableChange }: Props) {
+export function TablePanel({ indicator, okey, rules, opened, onOpenedChange, table, onTableChange, hand }: Props) {
   const [entry, setEntry] = useState<HandTile[] | null>(null)
   const readings = indicator && entry ? readTableMeld(resolveHand(entry, indicator), rules) : []
 
@@ -35,12 +37,18 @@ export function TablePanel({ indicator, okey, rules, opened, onOpenedChange, tab
   }
   const push = (t: HandTile) => entry && entry.length < 13 && setEntry([...entry, t])
 
+  // Each tile exists twice (the indicator's face once): count the hand, the table and the meld being entered.
+  const used = [...hand, ...(okey ? tableTiles(table, okey) : [])]
+  const tooMany = overLimit(used, indicator)
+  const isUsedUp = (t: TileChoice) => copiesLeft([...used, ...(entry ?? [])], indicator, t) <= 0
+
   // Shortcut: tap a run's two ends and add the tiles in between at once.
-  const span = entry?.length === 2 && okey ? spanOf(entry[0], entry[1], okey, rules) : null
+  const spanFaces = entry?.length === 2 && okey ? spanOf(entry[0], entry[1], okey, rules) : null
+  const spanTiles = spanFaces?.map((f): HandTile => (sameFace(f, okey!) ? { id: '', kind: 'false' } : { id: '', kind: 'face', ...f }))
+  const span = spanFaces && overLimit([...used, ...spanTiles!], indicator).length === 0 ? spanFaces : null
   const addSpan = () => {
-    if (!span || !indicator) return
-    const tiles = span.map((f): HandTile => (sameFace(f, okey!) ? { id: '', kind: 'false' } : { id: '', kind: 'face', ...f }))
-    const [run] = readTableMeld(resolveHand(tiles, indicator), rules).filter((m) => m.kind === 'run')
+    if (!span || !spanTiles || !indicator) return
+    const [run] = readTableMeld(resolveHand(spanTiles, indicator), rules).filter((m) => m.kind === 'run')
     if (run) add(run)
   }
 
@@ -96,6 +104,13 @@ export function TablePanel({ indicator, okey, rules, opened, onOpenedChange, tab
         <p className="hint">Masada per yok. Açtıktan sonra işleme önerileri için masadaki perleri ekle.</p>
       )}
 
+      {tooMany.length > 0 && (
+        <p className="invalid" role="alert">
+          Elinde ve masada, oyunda olduğundan fazla taş var:{' '}
+          {tooMany.map((t) => ('kind' in t ? 'Sahte okey' : faceName(t))).join(', ')}. Elini veya masayı düzelt.
+        </p>
+      )}
+
       {entry === null ? (
         <div className="table-actions">
           <button type="button" className="tp-btn" disabled={!indicator} onClick={() => setEntry([])}>
@@ -120,9 +135,15 @@ export function TablePanel({ indicator, okey, rules, opened, onOpenedChange, tab
               entry.map((t, i) => <Tile key={i} small tile={t} okey={okey} />)
             )}
           </div>
-          <FaceGrid okey={okey} onPick={(f) => push({ id: '', kind: 'face', ...f })}>
+          <FaceGrid okey={okey} isDisabled={isUsedUp} onPick={(f) => push({ id: '', kind: 'face', ...f })}>
             <div className="face-extra">
-              <Tile small tile={{ id: '', kind: 'false' }} okey={okey} onClick={() => push({ id: '', kind: 'false' })} />
+              <Tile
+              small
+              tile={{ id: '', kind: 'false' }}
+              okey={okey}
+              disabled={isUsedUp({ kind: 'false' })}
+              onClick={() => push({ id: '', kind: 'false' })}
+            />
               <span className="hint">Sahte okey</span>
             </div>
           </FaceGrid>

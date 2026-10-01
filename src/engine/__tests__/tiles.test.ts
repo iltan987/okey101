@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   canAddTile,
+  copiesLeft,
   FACE_COUNT,
   faceAt,
   faceIndex,
   faceLabel,
   okeyFromIndicator,
+  overLimit,
   parseFace,
   parseHand,
   resolveHand,
@@ -80,5 +82,23 @@ describe('canAddTile', () => {
   it('caps the hand at 22 tiles', () => {
     const full = parseHand(Array.from({ length: 22 }, (_, i) => `R${(i % 11) + 1}`).join(' '))
     expect(canAddTile(full, null, parseFace('K13'))).toBe(false)
+  })
+  it('counts copies already elsewhere, like on the table', () => {
+    expect(canAddTile(parseHand('R5'), null, R5, parseHand('R5'))).toBe(false)
+    expect(canAddTile([], null, { kind: 'false' }, parseHand('F F'))).toBe(false)
+  })
+})
+
+describe('copy limits', () => {
+  const R5 = parseFace('R5')
+  it('counts the copies left', () => {
+    expect(copiesLeft(parseHand('R5 Y5'), null, R5)).toBe(1)
+    expect(copiesLeft([], R5, R5)).toBe(1)
+    expect(copiesLeft(parseHand('F'), R5, { kind: 'false' })).toBe(1)
+  })
+  it('lists each tile used too often once', () => {
+    expect(overLimit(parseHand('R5 R5 R5 Y5 F F F K2'), null)).toEqual([R5, { kind: 'false' }])
+    expect(overLimit(parseHand('R5 R5'), R5)).toEqual([R5])
+    expect(overLimit(parseHand('R5 R5'), null)).toEqual([])
   })
 })

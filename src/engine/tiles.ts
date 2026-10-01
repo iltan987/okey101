@@ -103,14 +103,38 @@ export function parseFace(s: string): Face {
 /** Max tiles in hand (21 dealt, +1 after drawing). */
 export const MAX_HAND = 22
 
+/** A tile as picked: a face (the okey face means a real okey) or a false okey. */
+export type TileChoice = { kind: 'false' } | Face
+
+/** Copies in the game: 2 of each face and 2 false okeys; the face-up indicator uses up one copy of its face. */
+function copiesOf(indicator: Face | null, tile: TileChoice): number {
+  return 'kind' in tile || !indicator || !sameFace(indicator, tile) ? 2 : 1
+}
+
+function countOf(tiles: HandTile[], tile: TileChoice): number {
+  return tiles.filter((t) => ('kind' in tile ? t.kind === 'false' : t.kind === 'face' && sameFace(t, tile))).length
+}
+
+/** How many more copies of a tile exist, given the tiles already accounted for (hand, table, ...). */
+export function copiesLeft(used: HandTile[], indicator: Face | null, tile: TileChoice): number {
+  return copiesOf(indicator, tile) - countOf(used, tile)
+}
+
+/** Tiles accounted for more often than the game has them, each listed once. */
+export function overLimit(used: HandTile[], indicator: Face | null): TileChoice[] {
+  const out: TileChoice[] = []
+  for (const t of used) {
+    const tile: TileChoice = t.kind === 'false' ? { kind: 'false' } : { color: t.color, n: t.n }
+    const seen = out.some((o) => ('kind' in o ? 'kind' in tile : !('kind' in tile) && sameFace(o, tile)))
+    if (!seen && copiesLeft(used, indicator, tile) < 0) out.push(tile)
+  }
+  return out
+}
+
 /**
- * Whether another copy of a tile can be added: the deck has 2 of each face and 2 false okeys,
- * and the face-up indicator uses up one copy of its face.
+ * Whether another copy of a tile can be added to the hand: at most 22 tiles, and copies left once
+ * the hand and anything else in play (`elsewhere`, e.g. table melds) are counted.
  */
-export function canAddTile(tiles: HandTile[], indicator: Face | null, tile: { kind: 'false' } | Face): boolean {
-  if (tiles.length >= MAX_HAND) return false
-  if ('kind' in tile) return tiles.filter((t) => t.kind === 'false').length < 2
-  const held = tiles.filter((t) => t.kind === 'face' && sameFace(t, tile)).length
-  const limit = indicator && sameFace(indicator, tile) ? 1 : 2
-  return held < limit
+export function canAddTile(tiles: HandTile[], indicator: Face | null, tile: TileChoice, elsewhere: HandTile[] = []): boolean {
+  return tiles.length < MAX_HAND && copiesLeft([...tiles, ...elsewhere], indicator, tile) > 0
 }

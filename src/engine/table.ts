@@ -1,5 +1,5 @@
 import { isValidMeld, type Meld, type MeldTile } from './melds'
-import { COLORS, MAX_N, type Color, type Face, type ResolvedTile } from './tiles'
+import { COLORS, MAX_N, sameFace, type Color, type Face, type HandTile, type ResolvedTile } from './tiles'
 
 /** A meld on the table (any player's), tiles in table order. Jokers carry the face they stand for. */
 export type TableMeld = Meld
@@ -62,4 +62,15 @@ export function runBetween(from: Face, to: Face, { wrapRuns = false } = {}): Fac
   const faces: Face[] = []
   for (let n = from.n; n <= end; n++) faces.push({ color: from.color, n: n === MAX_N + 1 ? 1 : n })
   return faces
+}
+
+/** Table melds as physical tiles: okeys are real okeys, the okey's face as a plain tile is a false okey. */
+export function tableTiles(table: TableMeld[], okey: Face): HandTile[] {
+  return table.flatMap((m) =>
+    m.tiles.map((t): HandTile => {
+      if (t.joker) return { id: '', kind: 'face', ...okey }
+      if (sameFace(t.face, okey)) return { id: '', kind: 'false' }
+      return { id: '', kind: 'face', ...t.face }
+    }),
+  )
 }

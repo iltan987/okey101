@@ -12,7 +12,7 @@ import { layoutGroups, RACK_SLOTS, syncRack, type Rack as RackSlots } from './en
 import type { MeldTile } from './engine/melds'
 import { planTiles, removeFromHand, tableAfter } from './engine/play'
 import { withDefaults, type Rules } from './engine/rules'
-import type { TableMeld } from './engine/table'
+import { tableTiles, type TableMeld } from './engine/table'
 import { okeyFromIndicator, resolveHand, sameFace, type Face, type HandTile } from './engine/tiles'
 import { useAnalysis } from './hooks/useAnalysis'
 import { usePersistentState } from './hooks/usePersistentState'
@@ -160,6 +160,7 @@ export default function App() {
         okey={okey}
         onAdd={addTile}
         onRemoveLast={() => updateTiles(tiles.slice(0, -1))}
+        onTable={okey ? tableTiles(table, okey) : []}
       />
       <Rack
         rack={rack}
@@ -206,6 +207,7 @@ export default function App() {
         onOpenedChange={changeOpened}
         table={table}
         onTableChange={changeTable}
+        hand={tiles}
       />
       <ResultsPanel
         analysis={result}

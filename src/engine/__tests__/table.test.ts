@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { readTableMeld, runBetween } from '../table'
+import { readTableMeld, runBetween, tableTiles } from '../table'
 import { faceLabel, parseFace, parseHand, resolveHand } from '../tiles'
 
 // Okey = K1, so "K1" is an okey.
@@ -56,5 +56,16 @@ describe('runBetween', () => {
   it('ends with a 1 after 13 only when wrapping is allowed', () => {
     expect(between('Y11', 'Y1', { wrapRuns: true })).toEqual(['Y11', 'Y12', 'Y13', 'Y1'])
     expect(between('Y11', 'Y1')).toBeNull()
+  })
+})
+
+describe('tableTiles', () => {
+  it('turns okeys into real okeys and the okey face into a false okey', () => {
+    const okey = parseFace('K1')
+    const [run] = readTableMeld(resolveHand(parseHand('R5 K1 R7'), parseFace('K13')))
+    const [set] = readTableMeld(resolveHand(parseHand('Y1 F R1'), parseFace('K13')))
+    expect(tableTiles([run, set], okey).map((t) => (t.kind === 'false' ? 'F' : faceLabel(t)))).toEqual([
+      'R5', 'K1', 'R7', 'Y1', 'F', 'R1',
+    ])
   })
 })
