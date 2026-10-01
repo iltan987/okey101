@@ -1,32 +1,32 @@
-# React + TypeScript + Vite
+# Okey 101 Optimizer
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A web app for the Turkish tile game **Okey 101**. Enter your tiles and it finds the best way to arrange your rack:
 
-Currently, two official plugins are available:
+- **Meld opening:** the sets (per) and runs (seri) worth the most points, and whether you reach 101.
+- **Pairs opening:** how many pairs (çift) you have; 5 opens.
+- **Leftover penalty:** the smallest value you can be left holding (an unplayed okey counts 101).
+- **Discard suggestion:** with 22 tiles, the best tile to throw away, for melds and for pairs.
+- **Auto-sort:** lays out the rack with melds (or pairs) grouped and the rest sorted.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Rules: the okey is indicator + 1 in the same color (13 → 1). False okeys play as the okey's face. Runs don't wrap from 13 to 1.
 
-## React Compiler
+## Development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Requires Node 22+ and pnpm (`corepack enable pnpm`).
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+pnpm install
+pnpm dev        # start the app
+pnpm test       # run engine tests
+pnpm build      # typecheck + production build
+pnpm lint
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Layout
+
+- `src/engine/`: game logic in pure TypeScript, with no React
+  - `tiles.ts`: tile model, okey resolution, copy limits
+  - `solver.ts`: memoized search for the best melds (points or penalty objective)
+  - `pairs.ts`, `discard.ts`, `layout.ts`: pairs, discard ranking, rack layout
+  - `analyze.ts`: combines everything; runs in a Web Worker (`worker.ts`, `client.ts`)
+- `src/components/`: pickers, rack, results panel
